@@ -1,0 +1,18 @@
+# Model price table: USD per 1M tokens.
+#
+# An entry is added ONLY with a price copied from the provider's official
+# pricing page, with that page's URL in `source` and the date it was checked
+# in `as_of`. A model that is not listed has an unknown price and the cost
+# preview says "price unknown" instead of guessing.
+#
+# Local / self-hosted models (openai-compat) have no listed price on purpose.
+# Users may supply their own table with `--pricing PATH` (same schema).
+#
+# Schema:
+#   models:
+#     <model-name>:
+#       input_usd_per_mtok: <number>
+#       output_usd_per_mtok: <number>
+#       source: <official pricing page URL>
+#       as_of: <YYYY-MM-DD>
+models: {}
