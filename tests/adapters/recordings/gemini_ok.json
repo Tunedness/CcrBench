@@ -1,0 +1,23 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "role": "model",
+        "parts": [
+          {"text": "private reasoning", "thought": true},
+          {"text": "Step 1: add the operands.\nAnswer: 42"}
+        ]
+      },
+      "finishReason": "STOP",
+      "index": 0
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 17,
+    "candidatesTokenCount": 9,
+    "thoughtsTokenCount": 4,
+    "totalTokenCount": 30
+  },
+  "modelVersion": "gemini-test-model",
+  "responseId": "resp-recorded-1"
+}

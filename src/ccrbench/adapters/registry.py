@@ -5,8 +5,11 @@ from __future__ import annotations
 from collections.abc import Callable
 from typing import Any
 
+from ccrbench.adapters.anthropic_adapter import AnthropicAdapter
 from ccrbench.adapters.base import Adapter, AdapterConfigError, UnknownAdapterError
 from ccrbench.adapters.fake import FakeAdapter
+from ccrbench.adapters.gemini_adapter import GeminiAdapter
+from ccrbench.adapters.openai_adapter import OpenAIAdapter
 from ccrbench.adapters.openai_compat import OpenAICompatAdapter
 
 AdapterFactory = Callable[..., Adapter]
@@ -14,6 +17,9 @@ AdapterFactory = Callable[..., Adapter]
 _FACTORIES: dict[str, AdapterFactory] = {
     "fake": lambda model, **opts: FakeAdapter(model, **opts),
     "openai-compat": lambda model, **opts: OpenAICompatAdapter(model, **opts),
+    "anthropic": lambda model, **opts: AnthropicAdapter(model, **opts),
+    "openai": lambda model, **opts: OpenAIAdapter(model, **opts),
+    "gemini": lambda model, **opts: GeminiAdapter(model, **opts),
 }
 
 

@@ -1,0 +1,13 @@
+{
+  "id": "msg_01RecordedExample",
+  "type": "message",
+  "role": "assistant",
+  "model": "claude-test-model",
+  "content": [
+    {"type": "thinking", "thinking": "", "signature": "recorded-signature"},
+    {"type": "text", "text": "Step 1: add the operands.\nAnswer: 42"}
+  ],
+  "stop_reason": "end_turn",
+  "stop_sequence": null,
+  "usage": {"input_tokens": 21, "output_tokens": 13}
+}
