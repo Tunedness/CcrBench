@@ -1,0 +1,41 @@
+# Same suite as valid_full.yaml: different key order and YAML spelling.
+problems:
+  - {id: sum-two-numbers, kind: question, prompt: 'What is 17 + 25?', description: 'A different description is irrelevant to the hash.',
+     variants: [{check: {normalize: numeric, answer: '42', type: expected_answer}, prompt: "Add seventeen and twenty-five.", id: sum-words}],
+     check: {answer_expr: 'n0 + n1', normalize: numeric, type: expected_answer, answer: "42"}}
+  - check:
+      files:
+        test_solution.py: "from solution import reverse\n\ndef test_reverse():\n    assert reverse(\"abc\") == \"cba\"\n"
+      timeout_s: 20.0
+      command:
+        - python
+        - -m
+        - pytest
+        - -q
+      type: test_command
+    language: python
+    prompt: "Write a function reverse(s) that returns s reversed."
+    kind: code
+    id: reverse-string
+  - id: sqrt-two-irrational
+    prompt: >-
+      Prove that the square root of 2 is irrational.
+    kind: proof
+    check:
+      pass_label: PASS
+      template: "Does the proof correctly use a contradiction on parity? Answer PASS or FAIL."
+      type: judge_template
+judge: {model: "claude:claude-sonnet-4-5"}
+thresholds: {high_variant_drop: 0.4, high_accuracy: 0.85, low_diversity: 0.25}
+variation:
+  prompt_templates: ['{prompt}', "Think step by step.\n\n{prompt}"]
+  temperatures:
+    - 0
+    - 0.7
+    - 1
+max_suspected: 2
+budget_usd: 12.5
+runs: 5
+description: A reworded suite description.
+version: '2.1'
+name: full-suite

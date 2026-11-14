@@ -1,0 +1,11 @@
+name: dup
+version: "1"
+problems:
+  - id: same
+    kind: question
+    prompt: First?
+    check: {type: expected_answer, answer: a}
+  - id: same
+    kind: question
+    prompt: Second?
+    check: {type: expected_answer, answer: b}

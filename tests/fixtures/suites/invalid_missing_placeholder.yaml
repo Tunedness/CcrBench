@@ -1,0 +1,11 @@
+name: no-placeholder
+version: "1"
+variation:
+  prompt_templates:
+    - "{prompt}"
+    - "Answer carefully."
+problems:
+  - id: only
+    kind: question
+    prompt: Anything?
+    check: {type: expected_answer, answer: a}

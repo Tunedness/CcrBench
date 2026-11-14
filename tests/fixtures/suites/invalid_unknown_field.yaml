@@ -1,0 +1,8 @@
+name: unknown-field
+version: "1"
+problems:
+  - id: only
+    kind: question
+    prompt: Anything?
+    difficulty: hard
+    check: {type: expected_answer, answer: a}

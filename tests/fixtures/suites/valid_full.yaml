@@ -1,0 +1,55 @@
+name: full-suite
+version: "2.1"
+description: Exercises every field of the schema.
+runs: 5
+budget_usd: 12.5
+max_suspected: 2
+variation:
+  temperatures: [0.0, 0.7, 1.0]
+  prompt_templates:
+    - "{prompt}"
+    - "Think step by step.\n\n{prompt}"
+thresholds:
+  low_diversity: 0.25
+  high_accuracy: 0.85
+  high_variant_drop: 0.4
+judge:
+  model: claude:claude-sonnet-4-5
+problems:
+  - id: sum-two-numbers
+    kind: question
+    description: Basic arithmetic with a recomputable answer.
+    prompt: What is 17 + 25?
+    check:
+      type: expected_answer
+      answer: "42"
+      normalize: numeric
+      answer_expr: n0 + n1
+    variants:
+      - id: sum-words
+        prompt: Add seventeen and twenty-five.
+        check:
+          type: expected_answer
+          answer: "42"
+          normalize: numeric
+  - id: reverse-string
+    kind: code
+    language: python
+    prompt: Write a function reverse(s) that returns s reversed.
+    check:
+      type: test_command
+      command: [python, -m, pytest, -q]
+      timeout_s: 20
+      files:
+        test_solution.py: |
+          from solution import reverse
+
+          def test_reverse():
+              assert reverse("abc") == "cba"
+  - id: sqrt-two-irrational
+    kind: proof
+    prompt: Prove that the square root of 2 is irrational.
+    check:
+      type: judge_template
+      template: Does the proof correctly use a contradiction on parity? Answer PASS or FAIL.
+      pass_label: PASS
