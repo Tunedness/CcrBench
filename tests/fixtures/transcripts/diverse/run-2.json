@@ -1,0 +1,11 @@
+{
+  "text": "Let me think about the structure first. The sum for n depends on the sum for n - 1.\n\nSo I can define the answer recursively: f(0) = 0 and f(n) = f(n - 1) + n squared.\n\n```python\ndef sum_of_squares(n):\n    if n <= 0:\n        return 0\n    return sum_of_squares(n - 1) + n ** 2\n```\n\nRecursion depth grows with n, which is fine for small inputs.\n",
+  "model": "fixture-diverse",
+  "adapter": "fake",
+  "usage": {
+    "input_tokens": 40,
+    "output_tokens": 31
+  },
+  "cache": "disabled",
+  "raw_response_id": "diverse-1"
+}

@@ -24,6 +24,7 @@ dependencies = [
     "jinja2",
     "numpy",
     "rapidfuzz",
+    "tunedness-embed",
 ]
 
 [project.optional-dependencies]
@@ -34,6 +35,15 @@ all = ["anthropic", "openai", "google-genai"]
 
 [project.scripts]
 ccrbench = "ccrbench.cli:app"
+
+[project.entry-points."ccrbench.metrics"]
+step_edit_distance = "ccrbench.metrics.edit_distance:StepEditDistance"
+embedding_dispersion = "ccrbench.metrics.embedding_dispersion:EmbeddingDispersion"
+ast_diff = "ccrbench.metrics.ast_diff:AstDiff"
+branching_entropy = "ccrbench.metrics.branching_entropy:BranchingEntropy"
+
+[tool.uv.sources]
+tunedness-embed = { git = "https://github.com/Tunedness/TunedEmbed", tag = "v0.1.0" }
 
 [dependency-groups]
 dev = [

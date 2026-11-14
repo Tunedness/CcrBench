@@ -1,0 +1,11 @@
+{
+  "text": "Step 1: Build the list of squares with a comprehension.\nStep 2: Reduce the list with the built-in sum.\n```python\ndef sum_of_squares(n):\n    squares = [k ** 2 for k in range(1, max(n, 0) + 1)]\n    return sum(squares)\n```\nStep 3: Handle negative input by clamping to zero, done above.\nStep 4: Mention complexity: linear time, linear memory.\n",
+  "model": "fixture-diverse",
+  "adapter": "fake",
+  "usage": {
+    "input_tokens": 40,
+    "output_tokens": 33
+  },
+  "cache": "disabled",
+  "raw_response_id": "diverse-3"
+}

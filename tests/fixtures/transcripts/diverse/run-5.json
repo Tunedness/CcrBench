@@ -1,0 +1,11 @@
+{
+  "text": "First I will sketch a table of the first values: 1, 5, 14, 30.\n\nThen I notice the differences are the squares themselves, so a running counter works.\n\n```python\ndef sum_of_squares(n):\n    result, k = 0, 1\n    while k <= n:\n        result = result + k * k\n        k = k + 1\n    return result\n```\n\nFinally I test mentally with n = 4 and get 30.\n",
+  "model": "fixture-diverse",
+  "adapter": "fake",
+  "usage": {
+    "input_tokens": 40,
+    "output_tokens": 34
+  },
+  "cache": "disabled",
+  "raw_response_id": "diverse-4"
+}
