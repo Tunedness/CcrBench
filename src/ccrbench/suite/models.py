@@ -4,7 +4,9 @@ from __future__ import annotations
 
 import posixpath
 import re
+from collections.abc import Iterable
 from decimal import Decimal, InvalidOperation
+from importlib.metadata import entry_points
 from typing import Annotated, Literal
 
 from pydantic import (
@@ -12,6 +14,7 @@ from pydantic import (
     BaseModel,
     ConfigDict,
     Field,
+    ValidationInfo,
     field_validator,
     model_validator,
 )
@@ -21,6 +24,28 @@ from ccrbench.suite.expr import AnswerExprError, validate_answer_expr
 SLUG_PATTERN = r"^[a-z0-9][a-z0-9_-]*$"
 _SLUG_RE = re.compile(SLUG_PATTERN)
 PROMPT_PLACEHOLDER = "{prompt}"
+
+# Built-in variant transforms, in canonical order (ADR-005). ``permute_order`` is opt-in:
+# it cannot reliably tell from the text whether the answer depends on the order.
+KNOWN_VARIANT_TRANSFORMS = ("rename_identifiers", "substitute_numbers", "permute_order")
+DEFAULT_VARIANT_TRANSFORMS = ("rename_identifiers", "substitute_numbers")
+# Third-party transforms are entry points of this group (ADR-005: the plugin interface).
+VARIANT_ENTRY_POINT_GROUP = "ccrbench.variants"
+# Validation-context key under which a caller may pass the names of its live transform
+# registry (e.g. one with transforms registered in code), see ``Suite.variant_transforms``.
+VARIANT_NAMES_CONTEXT_KEY = "variant_transform_names"
+
+
+def available_variant_transforms(extra: Iterable[str] = ()) -> list[str]:
+    """Names a suite may list: the built-ins, then plugin entry points and ``extra``, sorted.
+
+    Only entry point *names* are read (package metadata); no plugin code is imported, so
+    the suite package stays independent of ``ccrbench.variants``. A name that is listed here
+    but fails to load as a plugin is reported when the variants are generated.
+    """
+    plugins = {point.name for point in entry_points(group=VARIANT_ENTRY_POINT_GROUP)}
+    plugins |= set(extra)
+    return [*KNOWN_VARIANT_TRANSFORMS, *sorted(plugins - set(KNOWN_VARIANT_TRANSFORMS))]
 
 
 def _normalize_zero(value: float) -> float:
@@ -197,6 +222,9 @@ class Suite(_Strict):
     max_suspected: int | None = Field(default=None, ge=0)
     thresholds: Thresholds = Field(default_factory=Thresholds)
     judge: JudgeConfig | None = None
+    # Automatic variant transforms to run; stored in canonical order so the suite hash
+    # does not depend on how the author ordered them.
+    variant_transforms: list[str] = Field(default_factory=lambda: list(DEFAULT_VARIANT_TRANSFORMS))
     # Descriptive only: excluded from the suite hash.
     description: str | None = None
 
@@ -210,6 +238,21 @@ class Suite(_Strict):
         if isinstance(value, int) and not isinstance(value, bool):
             return str(value)
         return value
+
+    @field_validator("variant_transforms")
+    @classmethod
+    def _known_unique_transforms(cls, value: list[str], info: ValidationInfo) -> list[str]:
+        context = info.context
+        given = context.get(VARIANT_NAMES_CONTEXT_KEY) if isinstance(context, dict) else None
+        available = available_variant_transforms(given or ())
+        unknown = [name for name in value if name not in available]
+        if unknown:
+            raise ValueError(
+                f"unknown variant transform {unknown[0]!r} (available: {', '.join(available)})"
+            )
+        if len(set(value)) != len(value):
+            raise ValueError("variant_transforms must not repeat a transform")
+        return [name for name in available if name in value]
 
     @field_validator("problems")
     @classmethod

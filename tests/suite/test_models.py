@@ -41,6 +41,7 @@ def test_defaults() -> None:
     assert parsed.problems[0].check.normalize == "casefold_strip"
     assert parsed.variation == VariationMatrix()
     assert parsed.thresholds == Thresholds()
+    assert parsed.variant_transforms == ["rename_identifiers", "substitute_numbers"]
 
 
 def test_thresholds_docstring_marks_defaults_provisional() -> None:
@@ -178,3 +179,69 @@ def test_check_union_is_discriminated_by_type() -> None:
     assert isinstance(check, TestCommandCheck)
     assert check.timeout_s == 30.0
     assert check.files == {"sub/test_a.py": "x"}
+
+
+def test_variant_transforms_are_stored_in_canonical_order() -> None:
+    parsed = Suite.model_validate(suite(variant_transforms=["permute_order", "rename_identifiers"]))
+    assert parsed.variant_transforms == ["rename_identifiers", "permute_order"]
+    assert Suite.model_validate(suite(variant_transforms=[])).variant_transforms == []
+
+
+def test_unknown_variant_transform_is_rejected() -> None:
+    with pytest.raises(
+        ValidationError, match=r"(?s)variant_transforms.*unknown variant transform 'nope'"
+    ):
+        Suite.model_validate(suite(variant_transforms=["rename_identifiers", "nope"]))
+
+
+def _patch_variant_entry_points(monkeypatch: pytest.MonkeyPatch, names: list[str]) -> None:
+    from importlib.metadata import EntryPoint
+
+    from ccrbench.suite import models as models_module
+
+    points = [EntryPoint(n, "some.module:factory", "ccrbench.variants") for n in names]
+
+    def fake(*, group: str) -> list[EntryPoint]:
+        assert group == "ccrbench.variants"
+        return points
+
+    monkeypatch.setattr(models_module, "entry_points", fake)
+
+
+def test_unknown_variant_transform_error_lists_the_available_names(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    _patch_variant_entry_points(monkeypatch, ["zeta_plugin", "alpha_plugin"])
+    with pytest.raises(ValidationError) as excinfo:
+        Suite.model_validate(suite(variant_transforms=["nope"]))
+    message = str(excinfo.value)
+    assert (
+        "available: rename_identifiers, substitute_numbers, permute_order, "
+        "alpha_plugin, zeta_plugin" in message
+    )
+
+
+def test_a_plugin_entry_point_name_is_accepted_and_ordered_after_the_built_ins(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    _patch_variant_entry_points(monkeypatch, ["my_plugin"])
+    parsed = Suite.model_validate(
+        suite(variant_transforms=["my_plugin", "permute_order", "rename_identifiers"])
+    )
+    assert parsed.variant_transforms == ["rename_identifiers", "permute_order", "my_plugin"]
+
+
+def test_names_from_the_validation_context_are_accepted() -> None:
+    from ccrbench.suite.models import VARIANT_NAMES_CONTEXT_KEY
+
+    data = suite(variant_transforms=["registered_in_code"])
+    with pytest.raises(ValidationError, match="unknown variant transform"):
+        Suite.model_validate(data)
+    context = {VARIANT_NAMES_CONTEXT_KEY: ["registered_in_code"]}
+    parsed = Suite.model_validate(data, context=context)
+    assert parsed.variant_transforms == ["registered_in_code"]
+
+
+def test_repeated_variant_transform_is_rejected() -> None:
+    with pytest.raises(ValidationError, match="must not repeat"):
+        Suite.model_validate(suite(variant_transforms=["permute_order", "permute_order"]))

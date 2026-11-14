@@ -1,0 +1,15 @@
+id: capital
+kind: question
+prompt: |
+  What is the capital of Australia?
+
+  A) Sydney
+  B) Canberra
+     (the seat of the federal parliament)
+  C) Melbourne
+  D) Perth
+
+  Answer with the name of the city.
+check:
+  type: expected_answer
+  answer: Canberra

@@ -1,0 +1,23 @@
+id: reverse-string
+kind: code
+language: python
+prompt: |
+  Write a function `reverse(s)` in solution.py that returns the string s reversed.
+  The function reverse must not modify its argument.
+check:
+  type: test_command
+  command: [python, -m, pytest, -q]
+  timeout_s: 20
+  files:
+    test_solution.py: |
+      from solution import reverse
+
+
+      def test_reverse():
+          assert reverse("abc") == "cba"
+
+
+      def test_empty():
+          assert reverse("") == ""
+    data.txt: |
+      sample data

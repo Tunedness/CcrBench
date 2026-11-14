@@ -1,0 +1,16 @@
+id: count-words
+kind: code
+language: python
+prompt: |
+  Implement count_words(text) in solution.py. Calls look like `solution.count_words("a b")`.
+check:
+  type: test_command
+  command: [python, -m, pytest, -q]
+  files:
+    test_solution.py: |
+      import solution
+
+
+      def test_count():
+          result = solution.count_words("a b c")
+          assert result == 3

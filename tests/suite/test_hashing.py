@@ -55,6 +55,17 @@ def test_defaults_spelled_out_hash_like_omitted() -> None:
     assert digest(explicit) == digest(base())
 
 
+def test_variant_transforms_default_spelled_out_and_reordered_hash_alike() -> None:
+    explicit = base()
+    explicit["variant_transforms"] = ["rename_identifiers", "substitute_numbers"]
+    assert digest(explicit) == digest(base())
+    on = base()
+    on["variant_transforms"] = ["permute_order", "substitute_numbers", "rename_identifiers"]
+    canonical = base()
+    canonical["variant_transforms"] = ["rename_identifiers", "substitute_numbers", "permute_order"]
+    assert digest(on) == digest(canonical)
+
+
 def test_descriptions_are_excluded_from_hash() -> None:
     changed = base()
     changed["description"] = "other"
@@ -101,6 +112,12 @@ def _mutations() -> list[tuple[str, Any]]:
             {"id": "v", "prompt": "p", "check": {"type": "expected_answer", "answer": "2"}}
         ]
 
+    def enable_permute(d: dict[str, Any]) -> None:
+        d["variant_transforms"] = ["rename_identifiers", "substitute_numbers", "permute_order"]
+
+    def disable_rename(d: dict[str, Any]) -> None:
+        d["variant_transforms"] = ["substitute_numbers"]
+
     def add_problem(d: dict[str, Any]) -> None:
         d["problems"].append({**d["problems"][0], "id": "p2"})
 
@@ -117,6 +134,8 @@ def _mutations() -> list[tuple[str, Any]]:
         ("threshold", set_threshold),
         ("judge", set_judge),
         ("variant", set_variant),
+        ("enable permute_order", enable_permute),
+        ("disable rename", disable_rename),
         ("problem", add_problem),
     ]
 

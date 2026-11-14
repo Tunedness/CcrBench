@@ -1,0 +1,12 @@
+id: pick-prime
+kind: question
+prompt: |
+  Which of these numbers is prime? Answer with the number.
+
+  - 4
+  - 9
+  - 7
+  - 8
+check:
+  type: expected_answer
+  answer: "7"

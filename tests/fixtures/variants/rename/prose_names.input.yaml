@@ -1,0 +1,17 @@
+id: reverse-words
+kind: code
+language: python
+prompt: |
+  Write a function `reverse_words(text)` in solution.py.
+  reverse_words should return the words of the text in reverse order,
+  and calling reverse_words twice must give the original words back.
+check:
+  type: test_command
+  command: [python, -m, pytest, -q]
+  files:
+    test_solution.py: |
+      from solution import reverse_words
+
+
+      def test_reverse_words():
+          assert reverse_words("a b c") == "c b a"

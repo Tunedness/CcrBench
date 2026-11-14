@@ -127,3 +127,16 @@ def test_deeply_nested_yaml_is_a_load_error(tmp_path: Path) -> None:
     path.write_text("name: " + "[" * 5000 + "]" * 5000 + "\n", encoding="utf-8")
     with pytest.raises(SuiteLoadError, match="nested too deeply"):
         load_suite(path)
+
+
+def test_loader_passes_registry_names_to_validation(tmp_path: Path) -> None:
+    path = tmp_path / "suite.yaml"
+    path.write_text(
+        "name: s\nversion: '1'\nvariant_transforms: [live_plugin]\n"
+        "problems:\n  - id: p\n    kind: question\n    prompt: Q\n"
+        "    check: {type: expected_answer, answer: A}\n",
+        encoding="utf-8",
+    )
+    with pytest.raises(SuiteLoadError, match=r"variant_transforms: .*unknown variant transform"):
+        load_suite(path)
+    assert load_suite(path, transform_names=["live_plugin"]).variant_transforms == ["live_plugin"]

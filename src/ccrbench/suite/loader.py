@@ -2,13 +2,14 @@
 
 from __future__ import annotations
 
+from collections.abc import Iterable
 from pathlib import Path
 from typing import Any
 
 import yaml
 from pydantic import ValidationError
 
-from ccrbench.suite.models import Suite
+from ccrbench.suite.models import VARIANT_NAMES_CONTEXT_KEY, Suite
 
 MAX_SUITE_BYTES = 4 * 1024 * 1024
 
@@ -65,8 +66,13 @@ def _format_location(loc: tuple[int | str, ...]) -> str:
     return "".join(parts) if parts else "<root>"
 
 
-def load_suite(path: str | Path) -> Suite:
+def load_suite(path: str | Path, *, transform_names: Iterable[str] | None = None) -> Suite:
     """Parse and validate the suite at ``path``.
+
+    ``transform_names`` are the names of the caller's live variant-transform registry
+    (``ccrbench.variants.available_transform_names()``); they extend the built-ins and the
+    plugin entry points a suite's ``variant_transforms`` may use. This keeps ``suite``
+    independent of ``variants`` while the registry stays the authority.
 
     Raises :class:`SuiteLoadError`; every message names the file and, for
     validation failures, the field path (e.g. ``problems[1].id``).
@@ -100,7 +106,10 @@ def load_suite(path: str | Path) -> Suite:
         raise SuiteLoadError([f"{name}: top level must be a mapping, got {type(data).__name__}"])
 
     try:
-        return Suite.model_validate(data)
+        context = (
+            None if transform_names is None else {VARIANT_NAMES_CONTEXT_KEY: list(transform_names)}
+        )
+        return Suite.model_validate(data, context=context)
     except ValidationError as exc:
         errors = [f"{name}: {_format_location(err['loc'])}: {err['msg']}" for err in exc.errors()]
         raise SuiteLoadError(errors) from exc

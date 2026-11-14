@@ -1,0 +1,27 @@
+id: reverse-string__rename_identifiers-e6069f6c
+kind: code
+prompt: |
+  Write a function `lunar_meadow(s)` in solution.py that returns the string s reversed.
+  The function lunar_meadow must not modify its argument.
+language: python
+check:
+  type: test_command
+  command:
+  - python
+  - -m
+  - pytest
+  - -q
+  files:
+    test_solution.py: |
+      from solution import lunar_meadow
+
+
+      def test_reverse():
+          assert lunar_meadow("abc") == "cba"
+
+
+      def test_empty():
+          assert lunar_meadow("") == ""
+    data.txt: |
+      sample data
+  timeout_s: 20.0

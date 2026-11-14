@@ -1,0 +1,9 @@
+id: sum-two__substitute_numbers-32a0d68a
+kind: question
+prompt: What is 14 + 26?
+language: null
+check:
+  type: expected_answer
+  answer: '40'
+  normalize: numeric
+  answer_expr: n0 + n1

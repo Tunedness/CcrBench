@@ -1,0 +1,10 @@
+id: train-speed
+kind: question
+prompt: |
+  Problem 7. A train travels 120 km in 3 hours at constant speed.
+  How many km does it travel in 6 hours? Give only the number.
+check:
+  type: expected_answer
+  answer: "240"
+  normalize: numeric
+  answer_expr: n1 * n3 // n2

@@ -1,0 +1,15 @@
+id: pick-prime__permute_order-a77a6e51
+kind: question
+prompt: |
+  Which of these numbers is prime? Answer with the number.
+
+  - 8
+  - 9
+  - 4
+  - 7
+language: null
+check:
+  type: expected_answer
+  answer: '7'
+  normalize: casefold_strip
+  answer_expr: null

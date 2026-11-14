@@ -1,0 +1,21 @@
+id: count-words__rename_identifiers-569ee842
+kind: code
+prompt: |
+  Implement keen_canvas(text) in solution.py. Calls look like `solution.keen_canvas("a b")`.
+language: python
+check:
+  type: test_command
+  command:
+  - python
+  - -m
+  - pytest
+  - -q
+  files:
+    test_solution.py: |
+      import solution
+
+
+      def test_count():
+          result = solution.keen_canvas("a b c")
+          assert result == 3
+  timeout_s: 30.0

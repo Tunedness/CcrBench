@@ -1,0 +1,22 @@
+id: reverse-words__rename_identifiers-1617e503
+kind: code
+prompt: |
+  Write a function `brisk_falcon(text)` in solution.py.
+  brisk_falcon should return the words of the text in reverse order,
+  and calling brisk_falcon twice must give the original words back.
+language: python
+check:
+  type: test_command
+  command:
+  - python
+  - -m
+  - pytest
+  - -q
+  files:
+    test_solution.py: |
+      from solution import brisk_falcon
+
+
+      def test_reverse_words():
+          assert brisk_falcon("a b c") == "c b a"
+  timeout_s: 30.0

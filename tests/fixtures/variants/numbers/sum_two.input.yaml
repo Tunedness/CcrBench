@@ -1,0 +1,8 @@
+id: sum-two
+kind: question
+prompt: What is 17 + 25?
+check:
+  type: expected_answer
+  answer: "42"
+  normalize: numeric
+  answer_expr: n0 + n1

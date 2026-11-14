@@ -1,0 +1,11 @@
+id: train-speed__substitute_numbers-bf00236f
+kind: question
+prompt: |
+  Problem 7. A train travels 849 km in 6 hours at constant speed.
+  How many km does it travel in 2 hours? Give only the number.
+language: null
+check:
+  type: expected_answer
+  answer: '283'
+  normalize: numeric
+  answer_expr: n1 * n3 // n2

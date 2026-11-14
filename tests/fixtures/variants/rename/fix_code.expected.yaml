@@ -1,0 +1,30 @@
+id: fix-total__rename_identifiers-97c207f5
+kind: code
+prompt: |
+  The following function should return the total price including the tax rate, but it has a bug.
+  Fix it and keep the name.
+
+  ```python
+  def calm_delta(brisk_island, rate):
+      total = 0
+      for nimble_anchor in brisk_island:
+          total += nimble_anchor
+      return total * (1 + rate)
+  ```
+language: python
+check:
+  type: test_command
+  command:
+  - python
+  - -m
+  - pytest
+  - -q
+  files:
+    test_solution.py: |
+      import pytest
+      from solution import calm_delta
+
+
+      def test_total_price():
+          assert calm_delta([1, 2, 3], 0.5) == pytest.approx(9.0)
+  timeout_s: 30.0
