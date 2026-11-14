@@ -1,0 +1,282 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CcrBench raporu: {{ report.suite.name }}</title>
+<style>
+:root {
+  color-scheme: light dark;
+  --bg: #fafaf9;
+  --surface: #ffffff;
+  --text: #1c1917;
+  --muted: #57534e;
+  --border: #d6d3d1;
+  --accent: #1d4ed8;
+  --suspect: #b91c1c;
+  --suspect-zone: rgba(185, 28, 28, 0.12);
+  --ok: #15803d;
+  --unknown: #6b7280;
+  --warn-bg: #fef3c7;
+  --warn-border: #b45309;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #14110f;
+    --surface: #1f1b18;
+    --text: #f5f5f4;
+    --muted: #a8a29e;
+    --border: #44403c;
+    --accent: #93c5fd;
+    --suspect: #f87171;
+    --suspect-zone: rgba(248, 113, 113, 0.16);
+    --ok: #4ade80;
+    --unknown: #9ca3af;
+    --warn-bg: #3b2a0a;
+    --warn-border: #f59e0b;
+  }
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  padding: 24px 16px 48px;
+  background: var(--bg);
+  color: var(--text);
+  font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+main { max-width: 1080px; margin: 0 auto; }
+h1 { font-size: 1.5rem; margin: 0 0 4px; }
+h2 { font-size: 1.15rem; margin: 32px 0 12px; }
+.muted { color: var(--muted); }
+.meta { display: flex; flex-wrap: wrap; gap: 4px 20px; margin: 8px 0 0; padding: 0; list-style: none; }
+code, pre { font-family: ui-monospace, "SFMono-Regular", Menlo, monospace; font-size: 0.85em; }
+pre { white-space: pre-wrap; overflow-wrap: anywhere; margin: 8px 0; }
+.note {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 10px 14px;
+  margin: 16px 0;
+}
+.status { font-weight: 600; }
+.status.bad { color: var(--suspect); }
+.status.good { color: var(--ok); }
+.cards { display: flex; flex-wrap: wrap; gap: 12px; margin: 16px 0; }
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 10px 16px;
+  min-width: 130px;
+}
+.card strong { display: block; font-size: 1.4rem; }
+.chart-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 12px; }
+svg { width: 100%; height: auto; max-width: 640px; display: block; margin: 0 auto; }
+svg text { fill: var(--muted); font: 11px system-ui, sans-serif; }
+svg .grid { stroke: var(--border); stroke-width: 1; }
+svg .frame { fill: none; stroke: var(--border); stroke-width: 1; }
+svg .zone { fill: var(--suspect-zone); stroke: none; }
+svg .limit { stroke: var(--suspect); stroke-width: 1; stroke-dasharray: 4 3; }
+svg .pt-suspected { fill: var(--suspect); stroke: var(--bg); stroke-width: 1; }
+svg .pt-not_suspected { fill: var(--ok); stroke: var(--bg); stroke-width: 1; }
+svg .pt-undetermined { fill: var(--unknown); stroke: var(--bg); stroke-width: 1; }
+svg .axis-title { fill: var(--text); font-size: 12px; }
+.legend { display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 0.85rem; margin: 8px 0 0; }
+.table-wrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; background: var(--surface); }
+th, td { border: 1px solid var(--border); padding: 6px 10px; text-align: left; vertical-align: top; }
+th { font-weight: 600; font-size: 0.85rem; }
+td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+.label-suspected { color: var(--suspect); font-weight: 600; }
+.label-not_suspected { color: var(--ok); }
+.label-undetermined { color: var(--unknown); }
+details { margin: 4px 0; }
+summary { cursor: pointer; color: var(--accent); }
+.warn {
+  background: var(--warn-bg);
+  border: 1px solid var(--warn-border);
+  border-radius: 6px;
+  padding: 10px 14px;
+  margin: 10px 0;
+}
+.warn strong { display: block; }
+ul.plain { margin: 4px 0; padding-left: 20px; }
+</style>
+</head>
+<body>
+<main>
+<h1>CcrBench raporu: {{ report.suite.name }}</h1>
+<ul class="meta muted">
+  <li>Suite sürümü: <code>{{ report.suite.version }}</code></li>
+  <li>Suite hash: <code>{{ report.suite.hash }}</code></li>
+  <li>Model: <code>{{ report.model }}</code></li>
+  <li>Tarih: {{ generated_at }}</li>
+  <li>Embedding modeli: {% if report.embedding_models %}{% for model_id in report.embedding_models %}<code>{{ model_id }}</code>{% if not loop.last %}, {% endif %}{% endfor %}{% else %}kullanılmadı{% endif %}</li>
+</ul>
+
+<p class="note">
+  Bu rapor <strong>olasılıksal işaretler</strong> verir: "ezber şüphesi" etiketi bir kanıt ya da
+  hüküm değil, yalnız çözüm patikalarının çeşitliliği ile varyantlardaki doğruluk düşüşünün
+  birlikte gözlendiği bir işarettir. İki eksen tek bir sayıya indirgenmez.
+</p>
+
+<div class="cards">
+  <div class="card"><strong>{{ report.summary.problems }}</strong> problem</div>
+  <div class="card"><strong class="label-suspected">{{ report.summary.suspected }}</strong> ezber şüphesi</div>
+  <div class="card"><strong>{{ report.summary.not_suspected }}</strong> işaret yok</div>
+  <div class="card"><strong>{{ report.summary.undetermined }}</strong> belirlenemedi</div>
+</div>
+<p>
+  CI sonucu:
+  <span class="status {% if report.summary.exit_status == 'OK' %}good{% else %}bad{% endif %}">{{ report.summary.exit_status }}</span>
+  {% if report.summary.max_suspected is not none %}
+  (izin verilen en çok şüpheli sayısı: {{ report.summary.max_suspected }})
+  {% else %}
+  (en az bir şüpheli problem varsa başarısız)
+  {% endif %}
+</p>
+
+<h2>Kullanılan eşikler</h2>
+<table>
+  <thead><tr><th>Eşik</th><th class="num">Değer</th><th>Kaynak</th><th>Koşul</th></tr></thead>
+  <tbody>
+    <tr><td><code>low_diversity</code></td><td class="num">{{ report.thresholds.low_diversity.value | fmt }}</td><td>{{ 'suite' if report.thresholds.low_diversity.source == 'suite' else 'varsayılan' }}</td><td>çeşitlilik &lt; eşik</td></tr>
+    <tr><td><code>high_accuracy</code></td><td class="num">{{ report.thresholds.high_accuracy.value | fmt }}</td><td>{{ 'suite' if report.thresholds.high_accuracy.source == 'suite' else 'varsayılan' }}</td><td>orijinal doğruluk &ge; eşik</td></tr>
+    <tr><td><code>high_variant_drop</code></td><td class="num">{{ report.thresholds.high_variant_drop.value | fmt }}</td><td>{{ 'suite' if report.thresholds.high_variant_drop.source == 'suite' else 'varsayılan' }}</td><td>varyant düşüşü &ge; eşik</td></tr>
+  </tbody>
+</table>
+
+<h2>Eksen dağılımı</h2>
+<div class="chart-wrap">
+<svg viewBox="0 0 {{ chart.width }} {{ chart.height }}" role="img" aria-label="Çeşitlilik (yatay) ve varyant düşüşü (dikey) dağılımı; gölgeli bölge şüphe bölgesidir">
+  <rect class="zone" x="{{ chart.zone_x }}" y="{{ chart.zone_y }}" width="{{ chart.zone_width }}" height="{{ chart.zone_height }}"><title>Şüphe bölgesi: düşük çeşitlilik ve yüksek varyant düşüşü</title></rect>
+  {% for tick in chart.x_ticks %}
+  <line class="grid" x1="{{ tick.position }}" y1="{{ chart.plot_top }}" x2="{{ tick.position }}" y2="{{ chart.plot_bottom }}"></line>
+  <text x="{{ tick.label_x }}" y="{{ tick.label_y }}" text-anchor="middle">{{ tick.text }}</text>
+  {% endfor %}
+  {% for tick in chart.y_ticks %}
+  <line class="grid" x1="{{ chart.plot_left }}" y1="{{ tick.position }}" x2="{{ chart.plot_right }}" y2="{{ tick.position }}"></line>
+  <text x="{{ tick.label_x }}" y="{{ tick.label_y }}" text-anchor="end">{{ tick.text }}</text>
+  {% endfor %}
+  <rect class="frame" x="{{ chart.plot_left }}" y="{{ chart.plot_top }}" width="{{ chart.plot_width }}" height="{{ chart.plot_height }}"></rect>
+  <line class="limit" x1="{{ chart.low_diversity_x }}" y1="{{ chart.plot_top }}" x2="{{ chart.low_diversity_x }}" y2="{{ chart.plot_bottom }}"></line>
+  <line class="limit" x1="{{ chart.plot_left }}" y1="{{ chart.high_drop_y }}" x2="{{ chart.plot_right }}" y2="{{ chart.high_drop_y }}"></line>
+  {% for point in chart.points %}
+  {% if point.label.value == 'suspected' %}
+  <path class="pt-suspected" d="{{ point.diamond }}"><title>{{ point.title }}</title></path>
+  {% else %}
+  <circle class="pt-{{ point.label.value }}" cx="{{ point.x }}" cy="{{ point.y }}" r="5"><title>{{ point.title }}</title></circle>
+  {% endif %}
+  {% endfor %}
+  <text class="axis-title" x="{{ chart.axis_label_x }}" y="{{ chart.x_title_y }}" text-anchor="middle">çeşitlilik</text>
+  <text class="axis-title" x="14" y="{{ chart.axis_label_y }}" text-anchor="middle" transform="rotate(-90 14 {{ chart.axis_label_y }})">varyant düşüşü</text>
+</svg>
+<p class="legend muted">
+  <span>&#9670; ezber şüphesi</span><span>&#9679; işaret yok / belirlenemedi (renk: yeşil / gri)</span>
+  <span>Gölgeli bölge: çeşitlilik &lt; {{ report.thresholds.low_diversity.value | fmt }} ve varyant düşüşü &ge; {{ report.thresholds.high_variant_drop.value | fmt }}. Etiket ayrıca orijinal doğruluk &ge; {{ report.thresholds.high_accuracy.value | fmt }} ister.</span>
+</p>
+{% if chart.not_plotted %}
+<p class="muted">Çizilemeyen problemler (bir eksen hesaplanamadı): {% for problem_id in chart.not_plotted %}<code>{{ problem_id }}</code>{% if not loop.last %}, {% endif %}{% endfor %}</p>
+{% endif %}
+</div>
+
+<h2>Uyarılar</h2>
+{% if warnings %}
+{% for warning in warnings %}
+<div class="warn">
+  <strong>{{ warning.title }}{% if warning.detail %}: <code>{{ warning.detail }}</code>{% endif %}</strong>
+  {{ warning.note }}
+  <div class="muted">Etkilenen problemler: {% for problem_id in warning.problem_ids %}<code>{{ problem_id }}</code>{% if not loop.last %}, {% endif %}{% endfor %}</div>
+</div>
+{% endfor %}
+{% else %}
+<p class="muted">Uyarı yok.</p>
+{% endif %}
+
+<h2>Problem skor kartları</h2>
+<div class="table-wrap">
+<table>
+  <thead>
+    <tr>
+      <th>Problem</th>
+      <th class="num">Çeşitlilik</th>
+      <th class="num">Orijinal doğruluk</th>
+      <th class="num">Varyant doğruluğu</th>
+      <th class="num">Varyant düşüşü</th>
+      <th>Etiket</th>
+    </tr>
+  </thead>
+  <tbody>
+  {% for card in report.problems %}
+    <tr>
+      <td><code>{{ card.problem_id }}</code><br><span class="muted">{{ card.kind }}{% if card.language %}, {{ card.language }}{% endif %}</span></td>
+      <td class="num">{{ card.diversity.score | fmt }}</td>
+      <td class="num">{{ card.variant_robustness.original_accuracy | pct }}</td>
+      <td class="num">{{ card.variant_robustness.variant_accuracy | pct }}</td>
+      <td class="num">{{ card.variant_robustness.variant_drop | fmt }}</td>
+      <td><span class="label-{{ card.label.label.value }}">{{ label_text[card.label.label.value] }}</span>{% if notes[card.problem_id].label %}<br><span class="muted">{{ notes[card.problem_id].label }}</span>{% endif %}</td>
+    </tr>
+    <tr>
+      <td colspan="6">
+        <details>
+          <summary>Ayrıntı ve kaynak koşumlar: {{ card.problem_id }}</summary>
+          <p class="muted">İstem (ilk karakterler):</p>
+          <pre>{{ card.prompt_preview }}</pre>
+          <p class="muted">Çeşitlilik metrikleri ({{ card.variant_robustness.original_runs }} orijinal koşum):</p>
+          {% if card.diversity.metrics %}
+          <table>
+            <thead><tr><th>Metrik</th><th class="num">Skor</th><th class="num">Güven</th><th class="num">Ağırlık</th><th>Not</th></tr></thead>
+            <tbody>
+            {% for metric in card.diversity.metrics %}
+              <tr>
+                <td><code>{{ metric.name }}</code></td>
+                <td class="num">{{ metric.score | fmt }}</td>
+                <td class="num">{{ metric.confidence | fmt }}</td>
+                <td class="num">{% if metric.excluded %}dışarıda{% else %}{{ metric.weight | fmt }}{% endif %}</td>
+                <td>{{ metric.notes | join('; ') }}</td>
+              </tr>
+            {% endfor %}
+            </tbody>
+          </table>
+          {% else %}
+          <p class="muted">Bu probleme uygulanan metrik yok.</p>
+          {% endif %}
+          {% if notes[card.problem_id].diversity %}<p class="muted">Çeşitlilik ekseni: {{ notes[card.problem_id].diversity }}</p>{% endif %}
+          <p class="muted">Varyantlar ({{ card.variant_robustness.variant_runs }} koşum):</p>
+          {% if card.variant_robustness.variants %}
+          <ul class="plain">
+            {% for variant in card.variant_robustness.variants %}
+            <li><code>{{ variant.variant_id }}</code> ({{ variant.transform }}{% if variant.manual_id %}: {{ variant.manual_id }}{% endif %}): {{ variant.correct }}/{{ variant.runs }} doğru</li>
+            {% endfor %}
+          </ul>
+          {% endif %}
+          {% if notes[card.problem_id].variant %}<p class="muted">Varyant ekseni: {{ notes[card.problem_id].variant }}</p>{% endif %}
+          {% if card.skipped_variants %}
+          <p class="muted">Atlanan varyantlar:</p>
+          <ul class="plain">
+            {% for skipped in card.skipped_variants %}
+            <li>{{ skipped.transform }}{% if skipped.manual_id %} ({{ skipped.manual_id }}){% endif %}: {{ skipped.reason }}</li>
+            {% endfor %}
+          </ul>
+          {% endif %}
+          <p class="muted">Kaynak koşum dosyaları (koşum deposu köküne göre):</p>
+          <ul class="plain">
+            {% for path in card.sources.original %}
+            <li><code>{{ path }}</code></li>
+            {% endfor %}
+            {% for variant_id, paths in card.sources.variants.items() %}
+            {% for path in paths %}
+            <li><code>{{ path }}</code></li>
+            {% endfor %}
+            {% endfor %}
+          </ul>
+        </details>
+      </td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+</main>
+</body>
+</html>

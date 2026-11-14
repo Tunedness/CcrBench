@@ -1,0 +1,717 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$defs": {
+    "AxisStatus": {
+      "enum": [
+        "available",
+        "unavailable"
+      ],
+      "title": "AxisStatus",
+      "type": "string"
+    },
+    "DiversityAxis": {
+      "additionalProperties": false,
+      "properties": {
+        "status": {
+          "$ref": "#/$defs/AxisStatus"
+        },
+        "score": {
+          "anyOf": [
+            {
+              "maximum": 1.0,
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Score"
+        },
+        "metrics": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/MetricBreakdown"
+          },
+          "title": "Metrics",
+          "type": "array"
+        },
+        "unavailable_reason": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Unavailable Reason"
+        }
+      },
+      "required": [
+        "status",
+        "score",
+        "metrics",
+        "unavailable_reason"
+      ],
+      "title": "DiversityAxis",
+      "type": "object"
+    },
+    "Label": {
+      "enum": [
+        "suspected",
+        "not_suspected",
+        "undetermined"
+      ],
+      "title": "Label",
+      "type": "string"
+    },
+    "LabelConditions": {
+      "additionalProperties": false,
+      "description": "Each condition of the label; ``None`` when its input is unavailable.",
+      "properties": {
+        "low_diversity": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Low Diversity"
+        },
+        "high_accuracy": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "High Accuracy"
+        },
+        "high_variant_drop": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "High Variant Drop"
+        }
+      },
+      "required": [
+        "low_diversity",
+        "high_accuracy",
+        "high_variant_drop"
+      ],
+      "title": "LabelConditions",
+      "type": "object"
+    },
+    "LabelDecision": {
+      "additionalProperties": false,
+      "properties": {
+        "label": {
+          "$ref": "#/$defs/Label"
+        },
+        "conditions": {
+          "$ref": "#/$defs/LabelConditions"
+        },
+        "reason": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reason"
+        }
+      },
+      "required": [
+        "label",
+        "conditions",
+        "reason"
+      ],
+      "title": "LabelDecision",
+      "type": "object"
+    },
+    "MetricBreakdown": {
+      "additionalProperties": false,
+      "description": "One metric's contribution to the diversity axis.",
+      "properties": {
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "score": {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Score",
+          "type": "number"
+        },
+        "confidence": {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Confidence",
+          "type": "number"
+        },
+        "weight": {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Weight",
+          "type": "number"
+        },
+        "excluded": {
+          "title": "Excluded",
+          "type": "boolean"
+        },
+        "notes": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Notes",
+          "type": "array"
+        },
+        "raw": {
+          "additionalProperties": true,
+          "default": {},
+          "title": "Raw",
+          "type": "object"
+        }
+      },
+      "required": [
+        "name",
+        "score",
+        "confidence",
+        "weight",
+        "excluded",
+        "notes",
+        "raw"
+      ],
+      "title": "MetricBreakdown",
+      "type": "object"
+    },
+    "ProblemCard": {
+      "additionalProperties": false,
+      "properties": {
+        "problem_id": {
+          "title": "Problem Id",
+          "type": "string"
+        },
+        "kind": {
+          "title": "Kind",
+          "type": "string"
+        },
+        "language": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Language"
+        },
+        "prompt_preview": {
+          "title": "Prompt Preview",
+          "type": "string"
+        },
+        "diversity": {
+          "$ref": "#/$defs/DiversityAxis"
+        },
+        "variant_robustness": {
+          "$ref": "#/$defs/VariantRobustnessAxis"
+        },
+        "label": {
+          "$ref": "#/$defs/LabelDecision"
+        },
+        "skipped_variants": {
+          "items": {
+            "$ref": "#/$defs/SkippedVariantInfo"
+          },
+          "title": "Skipped Variants",
+          "type": "array"
+        },
+        "sources": {
+          "$ref": "#/$defs/RunSources"
+        }
+      },
+      "required": [
+        "problem_id",
+        "kind",
+        "language",
+        "prompt_preview",
+        "diversity",
+        "variant_robustness",
+        "label",
+        "skipped_variants",
+        "sources"
+      ],
+      "title": "ProblemCard",
+      "type": "object"
+    },
+    "ReportWarning": {
+      "additionalProperties": false,
+      "description": "One kind of caveat and the problems it applies to.\n\n``detail`` names what it is about (the cache status, the ignored parameter, the metric)\nand ``message`` is a plain English sentence for machine consumers; the HTML report words\neach ``code`` itself.",
+      "properties": {
+        "code": {
+          "$ref": "#/$defs/WarningCode"
+        },
+        "detail": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Detail"
+        },
+        "message": {
+          "title": "Message",
+          "type": "string"
+        },
+        "problem_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Problem Ids",
+          "type": "array"
+        }
+      },
+      "required": [
+        "code",
+        "detail",
+        "message",
+        "problem_ids"
+      ],
+      "title": "ReportWarning",
+      "type": "object"
+    },
+    "RunSources": {
+      "additionalProperties": false,
+      "description": "Run files behind a score, relative to the run store root, POSIX separators.",
+      "properties": {
+        "original": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Original",
+          "type": "array"
+        },
+        "variants": {
+          "additionalProperties": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "title": "Variants",
+          "type": "object"
+        }
+      },
+      "required": [
+        "original",
+        "variants"
+      ],
+      "title": "RunSources",
+      "type": "object"
+    },
+    "SkippedVariantInfo": {
+      "additionalProperties": false,
+      "properties": {
+        "transform": {
+          "title": "Transform",
+          "type": "string"
+        },
+        "manual_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Manual Id"
+        },
+        "reason": {
+          "title": "Reason",
+          "type": "string"
+        }
+      },
+      "required": [
+        "transform",
+        "manual_id",
+        "reason"
+      ],
+      "title": "SkippedVariantInfo",
+      "type": "object"
+    },
+    "SuiteInfo": {
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "version": {
+          "title": "Version",
+          "type": "string"
+        },
+        "hash": {
+          "title": "Hash",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "version",
+        "hash"
+      ],
+      "title": "SuiteInfo",
+      "type": "object"
+    },
+    "Summary": {
+      "additionalProperties": false,
+      "properties": {
+        "problems": {
+          "minimum": 0,
+          "title": "Problems",
+          "type": "integer"
+        },
+        "suspected": {
+          "minimum": 0,
+          "title": "Suspected",
+          "type": "integer"
+        },
+        "not_suspected": {
+          "minimum": 0,
+          "title": "Not Suspected",
+          "type": "integer"
+        },
+        "undetermined": {
+          "minimum": 0,
+          "title": "Undetermined",
+          "type": "integer"
+        },
+        "max_suspected": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Max Suspected"
+        },
+        "exit_status": {
+          "enum": [
+            "OK",
+            "SUSPECTED"
+          ],
+          "title": "Exit Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "problems",
+        "suspected",
+        "not_suspected",
+        "undetermined",
+        "max_suspected",
+        "exit_status"
+      ],
+      "title": "Summary",
+      "type": "object"
+    },
+    "ThresholdValue": {
+      "additionalProperties": false,
+      "properties": {
+        "value": {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Value",
+          "type": "number"
+        },
+        "source": {
+          "enum": [
+            "default",
+            "suite"
+          ],
+          "title": "Source",
+          "type": "string"
+        }
+      },
+      "required": [
+        "value",
+        "source"
+      ],
+      "title": "ThresholdValue",
+      "type": "object"
+    },
+    "ThresholdsUsed": {
+      "additionalProperties": false,
+      "properties": {
+        "low_diversity": {
+          "$ref": "#/$defs/ThresholdValue"
+        },
+        "high_accuracy": {
+          "$ref": "#/$defs/ThresholdValue"
+        },
+        "high_variant_drop": {
+          "$ref": "#/$defs/ThresholdValue"
+        }
+      },
+      "required": [
+        "low_diversity",
+        "high_accuracy",
+        "high_variant_drop"
+      ],
+      "title": "ThresholdsUsed",
+      "type": "object"
+    },
+    "VariantBreakdown": {
+      "additionalProperties": false,
+      "properties": {
+        "variant_id": {
+          "title": "Variant Id",
+          "type": "string"
+        },
+        "transform": {
+          "title": "Transform",
+          "type": "string"
+        },
+        "manual_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Manual Id"
+        },
+        "runs": {
+          "minimum": 0,
+          "title": "Runs",
+          "type": "integer"
+        },
+        "correct": {
+          "minimum": 0,
+          "title": "Correct",
+          "type": "integer"
+        },
+        "accuracy": {
+          "anyOf": [
+            {
+              "maximum": 1.0,
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Accuracy"
+        }
+      },
+      "required": [
+        "variant_id",
+        "transform",
+        "manual_id",
+        "runs",
+        "correct",
+        "accuracy"
+      ],
+      "title": "VariantBreakdown",
+      "type": "object"
+    },
+    "VariantRobustnessAxis": {
+      "additionalProperties": false,
+      "properties": {
+        "status": {
+          "$ref": "#/$defs/AxisStatus"
+        },
+        "original_accuracy": {
+          "anyOf": [
+            {
+              "maximum": 1.0,
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Original Accuracy"
+        },
+        "variant_accuracy": {
+          "anyOf": [
+            {
+              "maximum": 1.0,
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Variant Accuracy"
+        },
+        "variant_drop": {
+          "anyOf": [
+            {
+              "maximum": 1.0,
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Variant Drop"
+        },
+        "original_runs": {
+          "minimum": 0,
+          "title": "Original Runs",
+          "type": "integer"
+        },
+        "variant_runs": {
+          "minimum": 0,
+          "title": "Variant Runs",
+          "type": "integer"
+        },
+        "variants": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/VariantBreakdown"
+          },
+          "title": "Variants",
+          "type": "array"
+        },
+        "unavailable_reason": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Unavailable Reason"
+        }
+      },
+      "required": [
+        "status",
+        "original_accuracy",
+        "variant_accuracy",
+        "variant_drop",
+        "original_runs",
+        "variant_runs",
+        "variants",
+        "unavailable_reason"
+      ],
+      "title": "VariantRobustnessAxis",
+      "type": "object"
+    },
+    "WarningCode": {
+      "enum": [
+        "cache_not_disabled",
+        "ignored_params",
+        "low_split_confidence",
+        "metric_excluded",
+        "diversity_unavailable",
+        "variant_axis_unavailable"
+      ],
+      "title": "WarningCode",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": 1,
+      "default": 1,
+      "title": "Schema Version",
+      "type": "integer"
+    },
+    "generated_at": {
+      "format": "date-time",
+      "title": "Generated At",
+      "type": "string"
+    },
+    "suite": {
+      "$ref": "#/$defs/SuiteInfo"
+    },
+    "model": {
+      "title": "Model",
+      "type": "string"
+    },
+    "embedding_models": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Embedding Models",
+      "type": "array"
+    },
+    "thresholds": {
+      "$ref": "#/$defs/ThresholdsUsed"
+    },
+    "summary": {
+      "$ref": "#/$defs/Summary"
+    },
+    "problems": {
+      "items": {
+        "$ref": "#/$defs/ProblemCard"
+      },
+      "title": "Problems",
+      "type": "array"
+    },
+    "warnings": {
+      "items": {
+        "$ref": "#/$defs/ReportWarning"
+      },
+      "title": "Warnings",
+      "type": "array"
+    }
+  },
+  "required": [
+    "schema_version",
+    "generated_at",
+    "suite",
+    "model",
+    "embedding_models",
+    "thresholds",
+    "summary",
+    "problems",
+    "warnings"
+  ],
+  "title": "Report",
+  "type": "object"
+}

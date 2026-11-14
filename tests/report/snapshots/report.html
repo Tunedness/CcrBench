@@ -1,0 +1,491 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CcrBench raporu: scoring-suite</title>
+<style>
+:root {
+  color-scheme: light dark;
+  --bg: #fafaf9;
+  --surface: #ffffff;
+  --text: #1c1917;
+  --muted: #57534e;
+  --border: #d6d3d1;
+  --accent: #1d4ed8;
+  --suspect: #b91c1c;
+  --suspect-zone: rgba(185, 28, 28, 0.12);
+  --ok: #15803d;
+  --unknown: #6b7280;
+  --warn-bg: #fef3c7;
+  --warn-border: #b45309;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #14110f;
+    --surface: #1f1b18;
+    --text: #f5f5f4;
+    --muted: #a8a29e;
+    --border: #44403c;
+    --accent: #93c5fd;
+    --suspect: #f87171;
+    --suspect-zone: rgba(248, 113, 113, 0.16);
+    --ok: #4ade80;
+    --unknown: #9ca3af;
+    --warn-bg: #3b2a0a;
+    --warn-border: #f59e0b;
+  }
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  padding: 24px 16px 48px;
+  background: var(--bg);
+  color: var(--text);
+  font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+main { max-width: 1080px; margin: 0 auto; }
+h1 { font-size: 1.5rem; margin: 0 0 4px; }
+h2 { font-size: 1.15rem; margin: 32px 0 12px; }
+.muted { color: var(--muted); }
+.meta { display: flex; flex-wrap: wrap; gap: 4px 20px; margin: 8px 0 0; padding: 0; list-style: none; }
+code, pre { font-family: ui-monospace, "SFMono-Regular", Menlo, monospace; font-size: 0.85em; }
+pre { white-space: pre-wrap; overflow-wrap: anywhere; margin: 8px 0; }
+.note {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 10px 14px;
+  margin: 16px 0;
+}
+.status { font-weight: 600; }
+.status.bad { color: var(--suspect); }
+.status.good { color: var(--ok); }
+.cards { display: flex; flex-wrap: wrap; gap: 12px; margin: 16px 0; }
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 10px 16px;
+  min-width: 130px;
+}
+.card strong { display: block; font-size: 1.4rem; }
+.chart-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 12px; }
+svg { width: 100%; height: auto; max-width: 640px; display: block; margin: 0 auto; }
+svg text { fill: var(--muted); font: 11px system-ui, sans-serif; }
+svg .grid { stroke: var(--border); stroke-width: 1; }
+svg .frame { fill: none; stroke: var(--border); stroke-width: 1; }
+svg .zone { fill: var(--suspect-zone); stroke: none; }
+svg .limit { stroke: var(--suspect); stroke-width: 1; stroke-dasharray: 4 3; }
+svg .pt-suspected { fill: var(--suspect); stroke: var(--bg); stroke-width: 1; }
+svg .pt-not_suspected { fill: var(--ok); stroke: var(--bg); stroke-width: 1; }
+svg .pt-undetermined { fill: var(--unknown); stroke: var(--bg); stroke-width: 1; }
+svg .axis-title { fill: var(--text); font-size: 12px; }
+.legend { display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 0.85rem; margin: 8px 0 0; }
+.table-wrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; background: var(--surface); }
+th, td { border: 1px solid var(--border); padding: 6px 10px; text-align: left; vertical-align: top; }
+th { font-weight: 600; font-size: 0.85rem; }
+td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+.label-suspected { color: var(--suspect); font-weight: 600; }
+.label-not_suspected { color: var(--ok); }
+.label-undetermined { color: var(--unknown); }
+details { margin: 4px 0; }
+summary { cursor: pointer; color: var(--accent); }
+.warn {
+  background: var(--warn-bg);
+  border: 1px solid var(--warn-border);
+  border-radius: 6px;
+  padding: 10px 14px;
+  margin: 10px 0;
+}
+.warn strong { display: block; }
+ul.plain { margin: 4px 0; padding-left: 20px; }
+</style>
+</head>
+<body>
+<main>
+<h1>CcrBench raporu: scoring-suite</h1>
+<ul class="meta muted">
+  <li>Suite sürümü: <code>1</code></li>
+  <li>Suite hash: <code>b3e33b6b15f1268a4e6cc240906ebb84fcc9bd02f800ffdf8da7a7dbacb571fe</code></li>
+  <li>Model: <code>fake:memorize</code></li>
+  <li>Tarih: 2026-11-14 12:00 UTC</li>
+  <li>Embedding modeli: <code>test-embed-v1</code></li>
+</ul>
+
+<p class="note">
+  Bu rapor <strong>olasılıksal işaretler</strong> verir: "ezber şüphesi" etiketi bir kanıt ya da
+  hüküm değil, yalnız çözüm patikalarının çeşitliliği ile varyantlardaki doğruluk düşüşünün
+  birlikte gözlendiği bir işarettir. İki eksen tek bir sayıya indirgenmez.
+</p>
+
+<div class="cards">
+  <div class="card"><strong>5</strong> problem</div>
+  <div class="card"><strong class="label-suspected">1</strong> ezber şüphesi</div>
+  <div class="card"><strong>3</strong> işaret yok</div>
+  <div class="card"><strong>1</strong> belirlenemedi</div>
+</div>
+<p>
+  CI sonucu:
+  <span class="status bad">SUSPECTED</span>
+  (en az bir şüpheli problem varsa başarısız)
+</p>
+
+<h2>Kullanılan eşikler</h2>
+<table>
+  <thead><tr><th>Eşik</th><th class="num">Değer</th><th>Kaynak</th><th>Koşul</th></tr></thead>
+  <tbody>
+    <tr><td><code>low_diversity</code></td><td class="num">0.25</td><td>suite</td><td>çeşitlilik &lt; eşik</td></tr>
+    <tr><td><code>high_accuracy</code></td><td class="num">0.80</td><td>varsayılan</td><td>orijinal doğruluk &ge; eşik</td></tr>
+    <tr><td><code>high_variant_drop</code></td><td class="num">0.30</td><td>varsayılan</td><td>varyant düşüşü &ge; eşik</td></tr>
+  </tbody>
+</table>
+
+<h2>Eksen dağılımı</h2>
+<div class="chart-wrap">
+<svg viewBox="0 0 560 400" role="img" aria-label="Çeşitlilik (yatay) ve varyant düşüşü (dikey) dağılımı; gölgeli bölge şüphe bölgesidir">
+  <rect class="zone" x="56.0" y="20.0" width="121.0" height="232.4"><title>Şüphe bölgesi: düşük çeşitlilik ve yüksek varyant düşüşü</title></rect>
+  <line class="grid" x1="56.0" y1="20.0" x2="56.0" y2="352.0"></line>
+  <text x="56.0" y="368.0" text-anchor="middle">0</text>
+  <line class="grid" x1="177.0" y1="20.0" x2="177.0" y2="352.0"></line>
+  <text x="177.0" y="368.0" text-anchor="middle">0.25</text>
+  <line class="grid" x1="298.0" y1="20.0" x2="298.0" y2="352.0"></line>
+  <text x="298.0" y="368.0" text-anchor="middle">0.5</text>
+  <line class="grid" x1="419.0" y1="20.0" x2="419.0" y2="352.0"></line>
+  <text x="419.0" y="368.0" text-anchor="middle">0.75</text>
+  <line class="grid" x1="540.0" y1="20.0" x2="540.0" y2="352.0"></line>
+  <text x="540.0" y="368.0" text-anchor="middle">1</text>
+  <line class="grid" x1="56.0" y1="352.0" x2="540.0" y2="352.0"></line>
+  <text x="48.0" y="356.0" text-anchor="end">0</text>
+  <line class="grid" x1="56.0" y1="269.0" x2="540.0" y2="269.0"></line>
+  <text x="48.0" y="273.0" text-anchor="end">0.25</text>
+  <line class="grid" x1="56.0" y1="186.0" x2="540.0" y2="186.0"></line>
+  <text x="48.0" y="190.0" text-anchor="end">0.5</text>
+  <line class="grid" x1="56.0" y1="103.0" x2="540.0" y2="103.0"></line>
+  <text x="48.0" y="107.0" text-anchor="end">0.75</text>
+  <line class="grid" x1="56.0" y1="20.0" x2="540.0" y2="20.0"></line>
+  <text x="48.0" y="24.0" text-anchor="end">1</text>
+  <rect class="frame" x="56.0" y="20.0" width="484.0" height="332.0"></rect>
+  <line class="limit" x1="177.0" y1="20.0" x2="177.0" y2="352.0"></line>
+  <line class="limit" x1="56.0" y1="252.4" x2="540.0" y2="252.4"></line>
+  <path class="pt-suspected" d="M 80.2 96.0 L 87.2 103.0 L 80.2 110.0 L 73.2 103.0 Z"><title>memo: çeşitlilik 0.05, varyant düşüşü 0.75, ezber şüphesi</title></path>
+  <circle class="pt-not_suspected" cx="468.7" cy="352.0" r="5"><title>reason: çeşitlilik 0.85, varyant düşüşü 0.00, işaret yok</title></circle>
+  <circle class="pt-not_suspected" cx="286.8" cy="352.0" r="5"><title>cached: çeşitlilik 0.48, varyant düşüşü 0.00, işaret yok</title></circle>
+  <circle class="pt-not_suspected" cx="468.7" cy="352.0" r="5"><title>script: çeşitlilik 0.85, varyant düşüşü 0.00, işaret yok</title></circle>
+  <text class="axis-title" x="298.0" y="392.0" text-anchor="middle">çeşitlilik</text>
+  <text class="axis-title" x="14" y="186.0" text-anchor="middle" transform="rotate(-90 14 186.0)">varyant düşüşü</text>
+</svg>
+<p class="legend muted">
+  <span>&#9670; ezber şüphesi</span><span>&#9679; işaret yok / belirlenemedi (renk: yeşil / gri)</span>
+  <span>Gölgeli bölge: çeşitlilik &lt; 0.25 ve varyant düşüşü &ge; 0.30. Etiket ayrıca orijinal doğruluk &ge; 0.80 ister.</span>
+</p>
+<p class="muted">Çizilemeyen problemler (bir eksen hesaplanamadı): <code>novariant</code></p>
+</div>
+
+<h2>Uyarılar</h2>
+<div class="warn">
+  <strong>Sağlayıcı önbelleği kapatılamadı: <code>not_controllable</code></strong>
+  Aynı istemlerin tekrarında sağlayıcı önbelleği çeşitliliği yapay olarak düşürmüş olabilir.
+  <div class="muted">Etkilenen problemler: <code>cached</code></div>
+</div>
+<div class="warn">
+  <strong>Sağlayıcı bir parametreyi yok saydı: <code>seed</code></strong>
+  Bu eksen uygulanamadı: ilgili varyasyon (ör. sıcaklık, seed) sağlayıcıda uygulanmadığı için çeşitlilik yalnız kalan varyasyonlardan gelir.
+  <div class="muted">Etkilenen problemler: <code>cached</code></div>
+</div>
+<div class="warn">
+  <strong>Sağlayıcı bir parametreyi yok saydı: <code>temperature</code></strong>
+  Bu eksen uygulanamadı: ilgili varyasyon (ör. sıcaklık, seed) sağlayıcıda uygulanmadığı için çeşitlilik yalnız kalan varyasyonlardan gelir.
+  <div class="muted">Etkilenen problemler: <code>cached</code></div>
+</div>
+<div class="warn">
+  <strong>Adım bölme güveni düşük: <code>step_edit_distance</code></strong>
+  Transkriptlerde belirgin adım işareti yok; adım tabanlı metrikler kaba kalabilir.
+  <div class="muted">Etkilenen problemler: <code>cached</code></div>
+</div>
+<div class="warn">
+  <strong>Metrik çeşitlilik skoruna katılmadı: <code>ast_diff</code></strong>
+  Güveni sıfır olan metrik &#34;düşük çeşitlilik&#34; sayılmaz, ortalamanın dışında bırakılır.
+  <div class="muted">Etkilenen problemler: <code>cached</code></div>
+</div>
+<div class="warn">
+  <strong>Varyant ekseni hesaplanamadı, etiket verilmedi</strong>
+  Üç koşuldan biri değerlendirilemediği için işaret verilmez.
+  <div class="muted">Etkilenen problemler: <code>novariant</code></div>
+</div>
+
+<h2>Problem skor kartları</h2>
+<div class="table-wrap">
+<table>
+  <thead>
+    <tr>
+      <th>Problem</th>
+      <th class="num">Çeşitlilik</th>
+      <th class="num">Orijinal doğruluk</th>
+      <th class="num">Varyant doğruluğu</th>
+      <th class="num">Varyant düşüşü</th>
+      <th>Etiket</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>memo</code><br><span class="muted">question</span></td>
+      <td class="num">0.05</td>
+      <td class="num">100%</td>
+      <td class="num">25%</td>
+      <td class="num">0.75</td>
+      <td><span class="label-suspected">ezber şüphesi</span></td>
+    </tr>
+    <tr>
+      <td colspan="6">
+        <details>
+          <summary>Ayrıntı ve kaynak koşumlar: memo</summary>
+          <p class="muted">İstem (ilk karakterler):</p>
+          <pre>What is 17 + 25?</pre>
+          <p class="muted">Çeşitlilik metrikleri (4 orijinal koşum):</p>
+          <table>
+            <thead><tr><th>Metrik</th><th class="num">Skor</th><th class="num">Güven</th><th class="num">Ağırlık</th><th>Not</th></tr></thead>
+            <tbody>
+              <tr>
+                <td><code>embedding_dispersion</code></td>
+                <td class="num">0.05</td>
+                <td class="num">1.00</td>
+                <td class="num">1.00</td>
+                <td></td>
+              </tr>
+            </tbody>
+          </table>
+          <p class="muted">Varyantlar (4 koşum):</p>
+          <ul class="plain">
+            <li><code>memo__substitute_numbers-ab12cd34</code> (substitute_numbers): 1/4 doğru</li>
+          </ul>
+          <p class="muted">Kaynak koşum dosyaları (koşum deposu köküne göre):</p>
+          <ul class="plain">
+            <li><code>b3e33b6b15f1268a4e6cc240906ebb84fcc9bd02f800ffdf8da7a7dbacb571fe/fake__memorize/memo/run-0.json</code></li>
+            <li><code>b3e33b6b15f1268a4e6cc240906ebb84fcc9bd02f800ffdf8da7a7dbacb571fe/fake__memorize/memo/run-1.json</code></li>
+            <li><code>b3e33b6b15f1268a4e6cc240906ebb84fcc9bd02f800ffdf8da7a7dbacb571fe/fake__memorize/memo/run-2.json</code></li>
+            <li><code>b3e33b6b15f1268a4e6cc240906ebb84fcc9bd02f800ffdf8da7a7dbacb571fe/fake__memorize/memo/run-3.json</code></li>
+            <li><code>b3e33b6b15f1268a4e6cc240906ebb84fcc9bd02f800ffdf8da7a7dbacb571fe/fake__memorize/memo__substitute_numbers-ab12cd34/run-0.json</code></li>
+            <li><code>b3e33b6b15f1268a4e6cc240906ebb84fcc9bd02f800ffdf8da7a7dbacb571fe/fake__memorize/memo__substitute_numbers-ab12cd34/run-1.json</code></li>
+            <li><code>b3e33b6b15f1268a4e6cc240906ebb84fcc9bd02f800ffdf8da7a7dbacb571fe/fake__memorize/memo__substitute_numbers-ab12cd34/run-2.json</code></li>
+            <li><code>b3e33b6b15f1268a4e6cc240906ebb84fcc9bd02f800ffdf8da7a7dbacb571fe/fake__memorize/memo__substitute_numbers-ab12cd34/run-3.json</code></li>
+          </ul>
+        </details>
+      </td>
+    </tr>
+    <tr>
+      <td><code>reason</code><br><span class="muted">question</span></td>
+      <td class="num">0.85</td>
+      <td class="num">100%</td>
+      <td class="num">100%</td>
+      <td class="num">0.00</td>
+      <td><span class="label-not_suspected">işaret yok</span></td>
+    </tr>
+    <tr>
+      <td colspan="6">
+        <details>
+          <summary>Ayrıntı ve kaynak koşumlar: reason</summary>
+          <p class="muted">İstem (ilk karakterler):</p>
+          <pre>What is 17 + 25?</pre>
+          <p class="muted">Çeşitlilik metrikleri (4 orijinal koşum):</p>
+          <table>
+            <thead><tr><th>Metrik</th><th class="num">Skor</th><th class="num">Güven</th><th class="num">Ağırlık</th><th>Not</th></tr></thead>
+            <tbody>
+              <tr>
+                <td><code>embedding_dispersion</code></td>
+                <td class="num">0.90</td>
+                <td class="num">1.00</td>
+                <td class="num">0.53</td>
+                <td></td>
+              </tr>
+              <tr>
+                <td><code>step_edit_distance</code></td>
+                <td class="num">0.80</td>
+                <td class="num">0.90</td>
+                <td class="num">0.47</td>
+                <td></td>
+              </tr>
+            </tbody>
+          </table>
+          <p class="muted">Varyantlar (4 koşum):</p>
+          <ul class="plain">
+            <li><code>reason__substitute_numbers-ab12cd34</code> (substitute_numbers): 4/4 doğru</li>
+          </ul>
+          <p class="muted">Atlanan varyantlar:</p>
+          <ul class="plain">
+            <li>rename_identifiers: no code block to rename</li>
+          </ul>
+          <p class="muted">Kaynak koşum dosyaları (koşum deposu köküne göre):</p>
+          <ul class="plain">
+            <li><code>b3e33b6b15f1268a4e6cc240906ebb84fcc9bd02f800ffdf8da7a7dbacb571fe/fake__memorize/reason/run-0.json</code></li>
+            <li><code>b3e33b6b15f1268a4e6cc240906ebb84fcc9bd02f800ffdf8da7a7dbacb571fe/fake__memorize/reason/run-1.json</code></li>
+            <li><code>b3e33b6b15f1268a4e6cc240906ebb84fcc9bd02f800ffdf8da7a7dbacb571fe/fake__memorize/reason/run-2.json</code></li>
+            <li><code>b3e33b6b15f1268a4e6cc240906ebb84fcc9bd02f800ffdf8da7a7dbacb571fe/fake__memorize/reason/run-3.json</code></li>
+            <li><code>b3e33b6b15f1268a4e6cc240906ebb84fcc9bd02f800ffdf8da7a7dbacb571fe/fake__memorize/reason__substitute_numbers-ab12cd34/run-0.json</code></li>
+            <li><code>b3e33b6b15f1268a4e6cc240906ebb84fcc9bd02f800ffdf8da7a7dbacb571fe/fake__memorize/reason__substitute_numbers-ab12cd34/run-1.json</code></li>
+            <li><code>b3e33b6b15f1268a4e6cc240906ebb84fcc9bd02f800ffdf8da7a7dbacb571fe/fake__memorize/reason__substitute_numbers-ab12cd34/run-2.json</code></li>
+            <li><code>b3e33b6b15f1268a4e6cc240906ebb84fcc9bd02f800ffdf8da7a7dbacb571fe/fake__memorize/reason__substitute_numbers-ab12cd34/run-3.json</code></li>
+          </ul>
+        </details>
+      </td>
+    </tr>
+    <tr>
+      <td><code>novariant</code><br><span class="muted">question</span></td>
+      <td class="num">0.05</td>
+      <td class="num">100%</td>
+      <td class="num">—</td>
+      <td class="num">—</td>
+      <td><span class="label-undetermined">belirlenemedi</span><br><span class="muted">Etiket verilmedi: varyant ekseni hesaplanamadı.</span></td>
+    </tr>
+    <tr>
+      <td colspan="6">
+        <details>
+          <summary>Ayrıntı ve kaynak koşumlar: novariant</summary>
+          <p class="muted">İstem (ilk karakterler):</p>
+          <pre>What is 17 + 25?</pre>
+          <p class="muted">Çeşitlilik metrikleri (4 orijinal koşum):</p>
+          <table>
+            <thead><tr><th>Metrik</th><th class="num">Skor</th><th class="num">Güven</th><th class="num">Ağırlık</th><th>Not</th></tr></thead>
+            <tbody>
+              <tr>
+                <td><code>embedding_dispersion</code></td>
+                <td class="num">0.05</td>
+                <td class="num">1.00</td>
+                <td class="num">1.00</td>
+                <td></td>
+              </tr>
+            </tbody>
+          </table>
+          <p class="muted">Varyantlar (0 koşum):</p>
+<p class="muted">Varyant ekseni: Çalıştırılan varyant yok (türetilemedi, atlandı ya da tanımlı değil).</p>          <p class="muted">Atlanan varyantlar:</p>
+          <ul class="plain">
+            <li>substitute_numbers: prompt has no integer</li>
+          </ul>
+          <p class="muted">Kaynak koşum dosyaları (koşum deposu köküne göre):</p>
+          <ul class="plain">
+            <li><code>b3e33b6b15f1268a4e6cc240906ebb84fcc9bd02f800ffdf8da7a7dbacb571fe/fake__memorize/novariant/run-0.json</code></li>
+            <li><code>b3e33b6b15f1268a4e6cc240906ebb84fcc9bd02f800ffdf8da7a7dbacb571fe/fake__memorize/novariant/run-1.json</code></li>
+            <li><code>b3e33b6b15f1268a4e6cc240906ebb84fcc9bd02f800ffdf8da7a7dbacb571fe/fake__memorize/novariant/run-2.json</code></li>
+            <li><code>b3e33b6b15f1268a4e6cc240906ebb84fcc9bd02f800ffdf8da7a7dbacb571fe/fake__memorize/novariant/run-3.json</code></li>
+          </ul>
+        </details>
+      </td>
+    </tr>
+    <tr>
+      <td><code>cached</code><br><span class="muted">question</span></td>
+      <td class="num">0.48</td>
+      <td class="num">75%</td>
+      <td class="num">100%</td>
+      <td class="num">0.00</td>
+      <td><span class="label-not_suspected">işaret yok</span></td>
+    </tr>
+    <tr>
+      <td colspan="6">
+        <details>
+          <summary>Ayrıntı ve kaynak koşumlar: cached</summary>
+          <p class="muted">İstem (ilk karakterler):</p>
+          <pre>What is 17 + 25?</pre>
+          <p class="muted">Çeşitlilik metrikleri (4 orijinal koşum):</p>
+          <table>
+            <thead><tr><th>Metrik</th><th class="num">Skor</th><th class="num">Güven</th><th class="num">Ağırlık</th><th>Not</th></tr></thead>
+            <tbody>
+              <tr>
+                <td><code>step_edit_distance</code></td>
+                <td class="num">0.40</td>
+                <td class="num">0.30</td>
+                <td class="num">0.23</td>
+                <td></td>
+              </tr>
+              <tr>
+                <td><code>ast_diff</code></td>
+                <td class="num">0.00</td>
+                <td class="num">0.00</td>
+                <td class="num">dışarıda</td>
+                <td>failed</td>
+              </tr>
+              <tr>
+                <td><code>embedding_dispersion</code></td>
+                <td class="num">0.50</td>
+                <td class="num">1.00</td>
+                <td class="num">0.77</td>
+                <td></td>
+              </tr>
+            </tbody>
+          </table>
+          <p class="muted">Varyantlar (4 koşum):</p>
+          <ul class="plain">
+            <li><code>cached__substitute_numbers-ab12cd34</code> (substitute_numbers): 4/4 doğru</li>
+          </ul>
+          <p class="muted">Kaynak koşum dosyaları (koşum deposu köküne göre):</p>
+          <ul class="plain">
+            <li><code>b3e33b6b15f1268a4e6cc240906ebb84fcc9bd02f800ffdf8da7a7dbacb571fe/fake__memorize/cached/run-0.json</code></li>
+            <li><code>b3e33b6b15f1268a4e6cc240906ebb84fcc9bd02f800ffdf8da7a7dbacb571fe/fake__memorize/cached/run-1.json</code></li>
+            <li><code>b3e33b6b15f1268a4e6cc240906ebb84fcc9bd02f800ffdf8da7a7dbacb571fe/fake__memorize/cached/run-2.json</code></li>
+            <li><code>b3e33b6b15f1268a4e6cc240906ebb84fcc9bd02f800ffdf8da7a7dbacb571fe/fake__memorize/cached/run-3.json</code></li>
+            <li><code>b3e33b6b15f1268a4e6cc240906ebb84fcc9bd02f800ffdf8da7a7dbacb571fe/fake__memorize/cached__substitute_numbers-ab12cd34/run-0.json</code></li>
+            <li><code>b3e33b6b15f1268a4e6cc240906ebb84fcc9bd02f800ffdf8da7a7dbacb571fe/fake__memorize/cached__substitute_numbers-ab12cd34/run-1.json</code></li>
+            <li><code>b3e33b6b15f1268a4e6cc240906ebb84fcc9bd02f800ffdf8da7a7dbacb571fe/fake__memorize/cached__substitute_numbers-ab12cd34/run-2.json</code></li>
+            <li><code>b3e33b6b15f1268a4e6cc240906ebb84fcc9bd02f800ffdf8da7a7dbacb571fe/fake__memorize/cached__substitute_numbers-ab12cd34/run-3.json</code></li>
+          </ul>
+        </details>
+      </td>
+    </tr>
+    <tr>
+      <td><code>script</code><br><span class="muted">question</span></td>
+      <td class="num">0.85</td>
+      <td class="num">100%</td>
+      <td class="num">100%</td>
+      <td class="num">0.00</td>
+      <td><span class="label-not_suspected">işaret yok</span></td>
+    </tr>
+    <tr>
+      <td colspan="6">
+        <details>
+          <summary>Ayrıntı ve kaynak koşumlar: script</summary>
+          <p class="muted">İstem (ilk karakterler):</p>
+          <pre>Print &lt;script&gt;alert(&#34;x&#34;)&lt;/script&gt; &amp; explain &#34;why&#34; in &lt;b&gt;bold&lt;/b&gt;.</pre>
+          <p class="muted">Çeşitlilik metrikleri (4 orijinal koşum):</p>
+          <table>
+            <thead><tr><th>Metrik</th><th class="num">Skor</th><th class="num">Güven</th><th class="num">Ağırlık</th><th>Not</th></tr></thead>
+            <tbody>
+              <tr>
+                <td><code>embedding_dispersion</code></td>
+                <td class="num">0.90</td>
+                <td class="num">1.00</td>
+                <td class="num">0.53</td>
+                <td></td>
+              </tr>
+              <tr>
+                <td><code>step_edit_distance</code></td>
+                <td class="num">0.80</td>
+                <td class="num">0.90</td>
+                <td class="num">0.47</td>
+                <td></td>
+              </tr>
+            </tbody>
+          </table>
+          <p class="muted">Varyantlar (4 koşum):</p>
+          <ul class="plain">
+            <li><code>script__substitute_numbers-ab12cd34</code> (substitute_numbers): 4/4 doğru</li>
+          </ul>
+          <p class="muted">Kaynak koşum dosyaları (koşum deposu köküne göre):</p>
+          <ul class="plain">
+            <li><code>b3e33b6b15f1268a4e6cc240906ebb84fcc9bd02f800ffdf8da7a7dbacb571fe/fake__memorize/script/run-0.json</code></li>
+            <li><code>b3e33b6b15f1268a4e6cc240906ebb84fcc9bd02f800ffdf8da7a7dbacb571fe/fake__memorize/script/run-1.json</code></li>
+            <li><code>b3e33b6b15f1268a4e6cc240906ebb84fcc9bd02f800ffdf8da7a7dbacb571fe/fake__memorize/script/run-2.json</code></li>
+            <li><code>b3e33b6b15f1268a4e6cc240906ebb84fcc9bd02f800ffdf8da7a7dbacb571fe/fake__memorize/script/run-3.json</code></li>
+            <li><code>b3e33b6b15f1268a4e6cc240906ebb84fcc9bd02f800ffdf8da7a7dbacb571fe/fake__memorize/script__substitute_numbers-ab12cd34/run-0.json</code></li>
+            <li><code>b3e33b6b15f1268a4e6cc240906ebb84fcc9bd02f800ffdf8da7a7dbacb571fe/fake__memorize/script__substitute_numbers-ab12cd34/run-1.json</code></li>
+            <li><code>b3e33b6b15f1268a4e6cc240906ebb84fcc9bd02f800ffdf8da7a7dbacb571fe/fake__memorize/script__substitute_numbers-ab12cd34/run-2.json</code></li>
+            <li><code>b3e33b6b15f1268a4e6cc240906ebb84fcc9bd02f800ffdf8da7a7dbacb571fe/fake__memorize/script__substitute_numbers-ab12cd34/run-3.json</code></li>
+          </ul>
+        </details>
+      </td>
+    </tr>
+  </tbody>
+</table>
+</div>
+</main>
+</body>
+</html>
