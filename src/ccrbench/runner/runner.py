@@ -85,6 +85,7 @@ class Runner:
         confirm: Callable[[str], bool] | None = None,
         max_tokens: int = DEFAULT_MAX_TOKENS,
         on_result: Callable[[RunResult], None] | None = None,
+        on_estimate: Callable[[CostEstimate], None] | None = None,
         clock: Callable[[], datetime] = lambda: datetime.now(UTC),
     ) -> None:
         self.suite = suite
@@ -102,6 +103,7 @@ class Runner:
         self._confirm = confirm
         self._max_tokens = max_tokens
         self._on_result = on_result
+        self._on_estimate = on_estimate
         self._clock = clock
         self._suite_hash = suite_hash(suite)
         self._judge: Adapter | None = None
@@ -130,6 +132,8 @@ class Runner:
             store=self.store,
             max_tokens=self._max_tokens,
         )
+        if self._on_estimate is not None:  # the preview shows even when the gate stays closed
+            self._on_estimate(est)
         if est.conflicting_runs:
             raise StoreError(
                 f"{est.conflicting_runs} stored run(s) of {self.model} were made with different "

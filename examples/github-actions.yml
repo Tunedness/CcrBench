@@ -1,0 +1,88 @@
+# GitHub Actions example: run a CcrBench suite in CI and fail the job when a problem is
+# labelled "suspected" (exit code 1), the run cannot start or fails (exit code 2: bad suite,
+# budget gate closed, missing credentials, provider error) or ccrbench hits an internal
+# error (exit code 3). Only exit code 1 is a finding.
+#
+# Copy to .github/workflows/ccrbench.yml and adjust: the suite and price table paths, the
+# model, the provider secret and the CcrBench location below.
+name: CcrBench
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 5 * * 1"   # weekly: a run costs money, do not trigger it on every push
+
+permissions:
+  contents: read
+
+env:
+  # Where CcrBench is cloned from (it is not on PyPI: it depends on tunedness-embed, a git
+  # dependency). Point this at your fork or mirror if the default is not reachable.
+  CCRBENCH_REPO: https://github.com/Tunedness/CcrBench.git
+  # Image that executes the suite's test_command checks. CcrBench never pulls it itself, so
+  # the job does it below. It must contain the tools your commands need (pytest is not in
+  # the default image; the example suite uses unittest).
+  CCRBENCH_DOCKER_IMAGE: python:3.12-slim
+
+jobs:
+  ccrbench:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Install CcrBench
+        run: |
+          git clone --depth 1 "$CCRBENCH_REPO" "$RUNNER_TEMP/ccrbench"
+          uv sync --locked --extra anthropic --project "$RUNNER_TEMP/ccrbench"
+
+      - name: Pull the test_command image
+        run: docker pull "$CCRBENCH_DOCKER_IMAGE"
+
+      # Stored transcripts are content-addressed: identical inputs are read back instead of
+      # being paid for again. actions/cache only saves when the job succeeds, but a run with a
+      # "suspected" problem (exit 1) or a provider error fails the job, and those are exactly
+      # the runs whose transcripts were paid for. So restore and save are separate steps and
+      # the save runs `always()`. A fresh key per run stores the newly added transcripts.
+      - name: Restore stored runs
+        uses: actions/cache/restore@v4
+        with:
+          path: runs
+          key: ccrbench-runs-${{ hashFiles('ccrbench/suite.yaml') }}-${{ github.run_id }}
+          restore-keys: ccrbench-runs-${{ hashFiles('ccrbench/suite.yaml') }}-
+
+      - name: Run the suite
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        # There is no terminal in CI: when the estimate exceeds budget_usd the run does not
+        # start (exit 2). Prices come from your own table (--pricing); the bundled one is empty.
+        # test_command checks run in Docker (ubuntu-latest provides it; the image was pulled above).
+        run: |
+          uv run --project "$RUNNER_TEMP/ccrbench" ccrbench run ccrbench/suite.yaml \
+            --model anthropic:YOUR-MODEL \
+            --pricing ccrbench/pricing.yaml \
+            --docker-image "$CCRBENCH_DOCKER_IMAGE" \
+            --runs-dir runs \
+            --out ccrbench-reports
+
+      - name: Save stored runs
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: runs
+          key: ccrbench-runs-${{ hashFiles('ccrbench/suite.yaml') }}-${{ github.run_id }}
+
+      # `if: always()` keeps the report (and the transcripts it cites) when the step above
+      # fails with exit code 1, which is the interesting case.
+      - name: Upload the report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ccrbench-report
+          path: |
+            ccrbench-reports/
+            runs/
+          if-no-files-found: warn

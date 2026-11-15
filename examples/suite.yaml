@@ -1,0 +1,67 @@
+# Example CcrBench suite: one code problem, one question and a hand-written variant.
+#
+#   ccrbench validate examples/suite.yaml
+#   ccrbench estimate examples/suite.yaml --model anthropic:<model> --pricing my-prices.yaml
+#   ccrbench run examples/suite.yaml --model anthropic:<model> --pricing my-prices.yaml
+#
+# The code problem's test_command runs in Docker (python:3.12-slim has no pytest, so the
+# test uses unittest). See README.md, "Security".
+name: example-suite
+version: "1"
+description: Small demo suite covering the test_command and expected_answer checks (judge_template needs a judge model).
+runs: 10          # isolated sessions per problem (and per variant); default is 10
+budget_usd: 5.0   # the run stops in CI (or asks interactively) when the estimate is higher
+max_suspected: 0  # CI fails when more than this many problems are labelled "suspected"
+variation:
+  temperatures: [0.2, 0.7, 1.0]
+  prompt_templates:
+    - "{prompt}"
+    - "Solve the problem and show your reasoning step by step.\n\n{prompt}"
+# Automatic variant transforms. permute_order is opt-in: add it here only when the answer
+# of your problems does not depend on the order of the items they mention.
+variant_transforms: [rename_identifiers, substitute_numbers]
+problems:
+  - id: reverse-words
+    kind: code
+    language: python
+    prompt: |
+      Write a function `reverse_words(text)` in Python that returns the words of `text`
+      in reverse order, separated by single spaces. Reply with one code block.
+    check:
+      type: test_command
+      command: [python, -m, unittest, -q, test_solution]
+      timeout_s: 20
+      files:
+        test_solution.py: |
+          import unittest
+
+          from solution import reverse_words
+
+
+          class ReverseWordsTest(unittest.TestCase):
+              def test_basic(self):
+                  self.assertEqual(reverse_words("one two three"), "three two one")
+
+              def test_single_word(self):
+                  self.assertEqual(reverse_words("one"), "one")
+
+              def test_extra_spaces(self):
+                  self.assertEqual(reverse_words("  a   b "), "b a")
+
+  - id: train-distance
+    kind: question
+    description: Arithmetic whose answer is recomputed for the number-substituted variant.
+    prompt: A train travels at 60 km/h for 3 hours. How many kilometres does it cover?
+    check:
+      type: expected_answer
+      answer: "180"
+      normalize: numeric
+      answer_expr: n0 * n1   # n0, n1, ... are the integers of the prompt, in order
+    variants:
+      # Hand-written variants run next to the automatic ones.
+      - id: train-distance-minutes
+        prompt: A train moves at 90 km/h for 2 hours. How many kilometres does it travel?
+        check:
+          type: expected_answer
+          answer: "180"
+          normalize: numeric

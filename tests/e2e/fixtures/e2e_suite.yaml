@@ -1,0 +1,38 @@
+# Docker-free end-to-end suite: every problem is a simple arithmetic question whose
+# answer is 42, so the memorizing fake adapter ("42" for any prompt) is right on the
+# originals and wrong on the number-substituted variants, while the diverse fake
+# adapter computes the arithmetic and stays right on both.
+name: e2e-arithmetic
+version: "1"
+description: Arithmetic questions for the fake-adapter end-to-end tests.
+runs: 4
+variation:
+  temperatures: [0.2, 0.9]
+  prompt_templates:
+    - "{prompt}"
+    - "Think step by step.\n\n{prompt}"
+problems:
+  - id: add-forty-two
+    kind: question
+    prompt: What is 40 + 2?
+    check:
+      type: expected_answer
+      answer: "42"
+      normalize: numeric
+      answer_expr: n0 + n1
+  - id: multiply-forty-two
+    kind: question
+    prompt: What is 21 * 2?
+    check:
+      type: expected_answer
+      answer: "42"
+      normalize: numeric
+      answer_expr: n0 * n1
+  - id: subtract-forty-two
+    kind: question
+    prompt: What is 50 - 8?
+    check:
+      type: expected_answer
+      answer: "42"
+      normalize: numeric
+      answer_expr: n0 - n1
