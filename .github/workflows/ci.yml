@@ -34,3 +34,19 @@ jobs:
         run: uv run mypy src
       - name: Pytest
         run: uv run pytest
+
+  docker:
+    # Exercises the real Docker executor (network off, read-only root, timeout,
+    # cleanup of container-written files), which the default test run excludes.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+      - name: Install dependencies
+        run: uv sync --locked
+      - name: Pull executor image
+        run: docker pull python:3.12-slim
+      - name: Pytest (docker)
+        run: uv run pytest -m docker
