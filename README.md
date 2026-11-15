@@ -92,8 +92,8 @@ another interpreter for one command, set `UV_PYTHON`, e.g. `UV_PYTHON=3.12 uv sy
 
 ```
 uv run ccrbench validate examples/suite.yaml                  # schema check, prints the suite hash
-uv run ccrbench estimate examples/suite.yaml --model anthropic:<model> --pricing prices.yaml
-uv run ccrbench run examples/suite.yaml --model anthropic:<model> --pricing prices.yaml
+uv run ccrbench estimate examples/suite.yaml --model anthropic:<model>
+uv run ccrbench run examples/suite.yaml --model anthropic:<model>
 uv run ccrbench report runs/ --suite examples/suite.yaml      # rebuild the report from stored runs
 ```
 
@@ -213,12 +213,17 @@ A run is `runs` sessions per problem and per variant (default 10), so it is not 
 - **Stored runs cost nothing.** A repeated run reads transcripts from the store and makes no
   model call. Only the runs of the same model count as paid.
 
-### Prices: `pricing.yaml` ships empty
+### Prices: `pricing.yaml`
 
-The bundled price table (`src/ccrbench/data/pricing.yaml`) is **empty on purpose**: a price is
-added only when copied from the provider's official page, and none has been verified yet.
-Until you give prices, the cost preview says "price unknown", and a suite with `budget_usd`
-refuses to start because it cannot check the budget. Provide your own table with `--pricing`:
+The bundled price table (`src/ccrbench/data/pricing.yaml`) lists standard-tier prices for
+current Anthropic, OpenAI and Gemini models, each copied from the provider's official pricing
+page with that page in `source` and the check date in `as_of`. Where a provider tiers by prompt
+length, the lowest tier is listed and the higher tier is noted in a comment. Prices change:
+treat the table as a snapshot and check `source` before relying on a cost preview.
+
+A model that is not listed has an unknown price: the cost preview says "price unknown", and a
+suite with `budget_usd` refuses to start because it cannot check the budget. Provide your own
+table with `--pricing` (it replaces the bundled one):
 
 ```yaml
 models:

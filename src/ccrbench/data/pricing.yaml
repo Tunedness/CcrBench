@@ -6,6 +6,11 @@
 # preview says "price unknown" instead of guessing.
 #
 # Local / self-hosted models (openai-compat) have no listed price on purpose.
+# Prices are standard-tier rates (no batch or cache discounts). Where a
+# provider tiers by prompt length, the lowest tier is listed and the higher
+# tier is noted in a comment. Prices change; re-check `source` before relying
+# on a cost preview, and override with `--pricing PATH` if needed.
+#
 # Users may supply their own table with `--pricing PATH` (same schema).
 #
 # Schema:
@@ -15,4 +20,244 @@
 #       output_usd_per_mtok: <number>
 #       source: <official pricing page URL>
 #       as_of: <YYYY-MM-DD>
-models: {}
+# Checked 2026-11-15.
+# Redirects followed (all first-party):
+#   docs.claude.com/.../pricing        -> platform.claude.com/docs/en/about-claude/pricing
+#   platform.openai.com/docs/pricing   -> developers.openai.com/api/docs/pricing
+#   ai.google.dev/gemini-api/docs/pricing -> aistudio.google.com/docs/pricing
+# Anthropic: the pricing page lists display names only; API ids were mapped via
+#   https://platform.claude.com/docs/en/about-claude/model-deprecations (model status table).
+# Excluded on purpose:
+#   Anthropic: claude-sonnet-4-5-20250929 (deprecated, retires 2026-11-30); opus-4-1 / opus-4 / sonnet-4 (retired);
+#              claude-mythos-5 / 5-1 / 5-2 (limited availability, not general access; $10/$50, $10/$50, $8/$40);
+#              claude-mythos-preview (deprecated).
+#   OpenAI:    gpt-5, gpt-5-mini, gpt-5-nano, gpt-5-pro, o3, o3-pro (deprecated, shutdown 2026-12-11);
+#              gpt-5.1, gpt-5.4-nano (deprecated, shutdown 2027-04-01);
+#              gpt-4o, gpt-4o-mini, gpt-4.1, gpt-4.1-mini (base ids not listed, but every dated snapshot is
+#              deprecated with shutdown 2027-01-14 per developers.openai.com/api/docs/deprecations).
+#   Google:    gemini-2.5-pro, gemini-2.5-flash (deprecated); native-audio / live / robotics-er models (not general text models).
+models:
+  # ---------------- Anthropic ----------------
+  claude-fable-5-2:
+    input_usd_per_mtok: 8
+    output_usd_per_mtok: 40
+    source: https://platform.claude.com/docs/en/about-claude/pricing
+    as_of: 2026-11-15
+  claude-fable-5-1:
+    input_usd_per_mtok: 10
+    output_usd_per_mtok: 50
+    source: https://platform.claude.com/docs/en/about-claude/pricing
+    as_of: 2026-11-15
+  claude-fable-5:
+    input_usd_per_mtok: 10
+    output_usd_per_mtok: 50
+    source: https://platform.claude.com/docs/en/about-claude/pricing
+    as_of: 2026-11-15
+  claude-opus-5-5:
+    input_usd_per_mtok: 4
+    output_usd_per_mtok: 20
+    source: https://platform.claude.com/docs/en/about-claude/pricing
+    as_of: 2026-11-15
+  claude-opus-5:
+    input_usd_per_mtok: 5
+    output_usd_per_mtok: 25
+    source: https://platform.claude.com/docs/en/about-claude/pricing
+    as_of: 2026-11-15
+  claude-opus-4-8:
+    input_usd_per_mtok: 5
+    output_usd_per_mtok: 25
+    source: https://platform.claude.com/docs/en/about-claude/pricing
+    as_of: 2026-11-15
+  claude-opus-4-7:
+    input_usd_per_mtok: 5
+    output_usd_per_mtok: 25
+    source: https://platform.claude.com/docs/en/about-claude/pricing
+    as_of: 2026-11-15
+  claude-opus-4-6:
+    input_usd_per_mtok: 5
+    output_usd_per_mtok: 25
+    source: https://platform.claude.com/docs/en/about-claude/pricing
+    as_of: 2026-11-15
+  claude-opus-4-5-20251101:
+    input_usd_per_mtok: 5
+    output_usd_per_mtok: 25
+    source: https://platform.claude.com/docs/en/about-claude/pricing
+    as_of: 2026-11-15
+    # Active, but retirement "not sooner than November 24, 2026".
+  claude-sonnet-5-5:
+    input_usd_per_mtok: 2
+    output_usd_per_mtok: 10
+    source: https://platform.claude.com/docs/en/about-claude/pricing
+    as_of: 2026-11-15
+  claude-sonnet-5:
+    input_usd_per_mtok: 2
+    output_usd_per_mtok: 10
+    source: https://platform.claude.com/docs/en/about-claude/pricing
+    as_of: 2026-11-15
+    # Former introductory $2/$10 is now the standard price; the planned Sep 2026 increase to $3/$15 was cancelled (page footnote 3).
+  claude-sonnet-4-6:
+    input_usd_per_mtok: 3
+    output_usd_per_mtok: 15
+    source: https://platform.claude.com/docs/en/about-claude/pricing
+    as_of: 2026-11-15
+  claude-haiku-5-5:
+    input_usd_per_mtok: 0.10
+    output_usd_per_mtok: 0.50
+    source: https://platform.claude.com/docs/en/about-claude/pricing
+    as_of: 2026-11-15
+    # Tiered by prompt length; lower tier (prompts up to 100,000 tokens). Over 100k - $0.50 in / $2.50 out.
+  claude-haiku-4-5-20251001:
+    input_usd_per_mtok: 1
+    output_usd_per_mtok: 5
+    source: https://platform.claude.com/docs/en/about-claude/pricing
+    as_of: 2026-11-15
+    # Active per status table, but its "not sooner than" retirement date (October 15, 2026) has passed.
+
+  # ---------------- OpenAI ----------------
+  gpt-6-astra:
+    input_usd_per_mtok: 10.00
+    output_usd_per_mtok: 50.00
+    source: https://developers.openai.com/api/docs/pricing
+    as_of: 2026-11-15
+    # Short-context rate (<=272K input tokens). Long context - $20.00 / $75.00.
+  gpt-6.1-sol:
+    input_usd_per_mtok: 2.00
+    output_usd_per_mtok: 10.00
+    source: https://developers.openai.com/api/docs/pricing
+    as_of: 2026-11-15
+    # Short-context rate (<=272K input tokens). Long context - $4.00 / $15.00.
+  gpt-6.1-terra:
+    input_usd_per_mtok: 1.00
+    output_usd_per_mtok: 5.00
+    source: https://developers.openai.com/api/docs/pricing
+    as_of: 2026-11-15
+    # Short-context rate (<=272K input tokens). Long context - $2.00 / $7.50.
+  gpt-6-sol:
+    input_usd_per_mtok: 2.00
+    output_usd_per_mtok: 10.00
+    source: https://developers.openai.com/api/docs/pricing
+    as_of: 2026-11-15
+    # Short-context rate (<=272K input tokens). Long context - $4.00 / $15.00.
+  gpt-6-luna:
+    input_usd_per_mtok: 0.10
+    output_usd_per_mtok: 0.50
+    source: https://developers.openai.com/api/docs/pricing
+    as_of: 2026-11-15
+    # Short-context rate (<=272K input tokens). Long context - $0.20 / $0.75.
+  gpt-5.6-sol:
+    input_usd_per_mtok: 4.00
+    output_usd_per_mtok: 20.00
+    source: https://developers.openai.com/api/docs/pricing
+    as_of: 2026-11-15
+    # Short-context rate (<=272K input tokens). Long context - $8.00 / $30.00.
+  gpt-5.6-terra:
+    input_usd_per_mtok: 2.00
+    output_usd_per_mtok: 12.00
+    source: https://developers.openai.com/api/docs/pricing
+    as_of: 2026-11-15
+    # Short-context rate (<=272K input tokens). Long context - $4.00 / $18.00.
+  gpt-5.6-luna:
+    input_usd_per_mtok: 0.20
+    output_usd_per_mtok: 1.20
+    source: https://developers.openai.com/api/docs/pricing
+    as_of: 2026-11-15
+    # Short-context rate (<=272K input tokens). Long context - $0.40 / $1.80.
+  gpt-5.5:
+    input_usd_per_mtok: 5.00
+    output_usd_per_mtok: 30.00
+    source: https://developers.openai.com/api/docs/pricing
+    as_of: 2026-11-15
+    # Short-context rate (<272K). Long context - $10.00 / $45.00.
+  gpt-5.5-pro:
+    input_usd_per_mtok: 30.00
+    output_usd_per_mtok: 180.00
+    source: https://developers.openai.com/api/docs/pricing
+    as_of: 2026-11-15
+    # Short-context rate (<272K). Long context - $60.00 / $270.00.
+  gpt-5.4:
+    input_usd_per_mtok: 2.50
+    output_usd_per_mtok: 15.00
+    source: https://developers.openai.com/api/docs/pricing
+    as_of: 2026-11-15
+    # Short-context rate (<272K). Long context - $5.00 / $22.50.
+  gpt-5.4-pro:
+    input_usd_per_mtok: 30.00
+    output_usd_per_mtok: 180.00
+    source: https://developers.openai.com/api/docs/pricing
+    as_of: 2026-11-15
+    # Short-context rate (<272K). Long context - $60.00 / $270.00.
+  gpt-5.4-mini:
+    input_usd_per_mtok: 0.75
+    output_usd_per_mtok: 4.50
+    source: https://developers.openai.com/api/docs/pricing
+    as_of: 2026-11-15
+  gpt-5.2:
+    input_usd_per_mtok: 1.75
+    output_usd_per_mtok: 14.00
+    source: https://developers.openai.com/api/docs/pricing
+    as_of: 2026-11-15
+  gpt-5.2-pro:
+    input_usd_per_mtok: 21.00
+    output_usd_per_mtok: 168.00
+    source: https://developers.openai.com/api/docs/pricing
+    as_of: 2026-11-15
+
+  # ---------------- Google Gemini ----------------
+  gemini-4-carbon:
+    input_usd_per_mtok: 2.00
+    output_usd_per_mtok: 10.00
+    source: https://aistudio.google.com/docs/pricing
+    as_of: 2026-11-15
+    # Price valid through 2026-11-30; rises to $4.00 / $20.00 from 2026-12-01. Paid tier only.
+  gemini-4-argon:
+    input_usd_per_mtok: 2.00
+    output_usd_per_mtok: 10.00
+    source: https://aistudio.google.com/docs/pricing
+    as_of: 2026-11-15
+    # Price valid through 2026-11-30; rises to $4.00 / $20.00 from 2026-12-01. Paid tier only.
+  gemini-4-hydrogen:
+    input_usd_per_mtok: 1.50
+    output_usd_per_mtok: 7.50
+    source: https://aistudio.google.com/docs/pricing
+    as_of: 2026-11-15
+  gemini-3.8-flash:
+    input_usd_per_mtok: 0.75
+    output_usd_per_mtok: 3.75
+    source: https://aistudio.google.com/docs/pricing
+    as_of: 2026-11-15
+    # Price valid through 2026-12-31; rises to $1.50 / $7.50 from 2027-01-01.
+  gemini-3.6-flash:
+    input_usd_per_mtok: 0.75
+    output_usd_per_mtok: 3.75
+    source: https://aistudio.google.com/docs/pricing
+    as_of: 2026-11-15
+    # Previous-generation Flash. Price valid through 2026-12-31; rises to $1.50 / $7.50 from 2027-01-01.
+  gemini-3.5-flash-lite:
+    input_usd_per_mtok: 0.30
+    output_usd_per_mtok: 2.50
+    source: https://aistudio.google.com/docs/pricing
+    as_of: 2026-11-15
+  gemini-3.1-flash-lite:
+    input_usd_per_mtok: 0.25
+    output_usd_per_mtok: 1.50
+    source: https://aistudio.google.com/docs/pricing
+    as_of: 2026-11-15
+    # Text/image/video input rate; audio input $0.50.
+  gemini-3.1-pro-preview:
+    input_usd_per_mtok: 2.00
+    output_usd_per_mtok: 12.00
+    source: https://aistudio.google.com/docs/pricing
+    as_of: 2026-11-15
+    # Preview model. Tiered - lower tier (prompts <=200k tokens); >200k is $4.00 / $18.00. Same pricing for gemini-3.1-pro-preview-customtools.
+  gemini-3-flash-preview:
+    input_usd_per_mtok: 0.50
+    output_usd_per_mtok: 3.00
+    source: https://aistudio.google.com/docs/pricing
+    as_of: 2026-11-15
+    # Preview, described as "legacy Flash model". Text/image/video input rate; audio $1.00.
+  gemini-2.5-flash-lite:
+    input_usd_per_mtok: 0.10
+    output_usd_per_mtok: 0.40
+    source: https://aistudio.google.com/docs/pricing
+    as_of: 2026-11-15
+    # Text/image/video input rate; audio $0.30. No deprecation shown on the page.
